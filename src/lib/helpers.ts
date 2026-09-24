@@ -94,7 +94,7 @@ export function getSchoolDaysInMonth(year: number, month: number): Date[] {
 // French: sort_order 3-4 (i.e. 4th and 5th primary)
 // English: sort_order 2-4 (i.e. 3rd, 4th, 5th primary)
 export const SUBJECT_LEVEL_RULES: Record<TeacherSubject, { min: number; max: number }> = {
-  arabic: { min: 0, max: 4 },
+  arabic: { min: -1, max: 4 },
   sport: { min: 0, max: 4 },
   french: { min: 3, max: 4 },
   english: { min: 2, max: 4 },

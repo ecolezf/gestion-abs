@@ -38,10 +38,10 @@ export function TeacherDashboard({ onNavigate }: { onNavigate: (page: string) =>
 
     const classIds = ctData.map((ct: any) => ct.class_id);
     const { data: classesData } = await supabase
-      .from('classes')
-      .select('*, level(*)')
-      .in('id', classIds)
-      .order('created_at');
+    .from('classes')
+    .select('*')
+    .in('id', classIds)
+    .order('created_at');
 
     const classes = (classesData || []) as ClassRoom[];
     setMyClasses(classes);

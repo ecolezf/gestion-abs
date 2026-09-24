@@ -44,9 +44,9 @@ export function AttendancePage() {
     }
 
     const classIds = ctData.map((ct: any) => ct.class_id);
-    const { data: classesData } = await supabase
+      const { data: classesData } = await supabase
       .from('classes')
-      .select('*, level(*)')
+      .select('*')
       .in('id', classIds)
       .order('created_at');
 

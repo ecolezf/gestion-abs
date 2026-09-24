@@ -29,6 +29,9 @@ export function AuthPage() {
   const [setupAvailable, setSetupAvailable] = useState(false);
   const [showSetup, setShowSetup] = useState(false);
 
+  const [schoolName, setSchoolName] = useState('');
+  const [logoUrl, setLogoUrl] = useState<string | null>(null);
+
   // Connexion
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -80,7 +83,37 @@ export function AuthPage() {
 
     checkInitialSetup();
   }, []);
+useEffect(() => {
+  const loadSchoolSettings = async () => {
+    const { data, error } = await supabase
+      .from('school_settings')
+      .select('school_name, logo_url')
+      .eq('singleton_key', 'school')
+      .maybeSingle();
 
+    if (error) {
+      console.error(
+        'Erreur chargement établissement AuthPage:',
+        error
+      );
+      return;
+    }
+
+    if (data) {
+      setSchoolName(data.school_name || '');
+
+      if (data.logo_url) {
+        setLogoUrl(
+          `${data.logo_url}?v=${Date.now()}`
+        );
+      } else {
+        setLogoUrl(null);
+      }
+    }
+  };
+
+  loadSchoolSettings();
+}, []);
   // -------------------------------------------------------
   // Connexion
   // -------------------------------------------------------
@@ -239,22 +272,37 @@ export function AuthPage() {
           <div className="absolute bottom-20 end-20 w-80 h-80 rounded-full bg-cyan-300 blur-3xl" />
         </div>
 
-        <div className="relative z-10 flex items-center gap-3">
-          <div className="w-11 h-11 rounded-xl bg-white/20 backdrop-blur flex items-center justify-center">
-            <GraduationCap className="w-6 h-6" />
-          </div>
+       <div className="relative z-10 flex items-center gap-3">
+        <div className="w-14 h-14 rounded-xl bg-white flex items-center justify-center overflow-hidden shrink-0 shadow-sm">
+          {logoUrl ? (
+            <img
+              src={logoUrl}
+              alt="Logo de l’établissement"
+              className="w-full h-full object-contain p-1"
+              onError={(e) => {
+                console.error(
+                  'Erreur chargement logo AuthPage:',
+                  logoUrl
+                );
 
-          <div>
-            <h1 className="text-xl font-bold">
-              {t('appName')}
-            </h1>
-
-            <p className="text-sm text-teal-100">
-              {t('appTagline')}
-            </p>
-          </div>
+                e.currentTarget.style.display = 'none';
+              }}
+            />
+          ) : (
+            <GraduationCap className="w-7 h-7 text-teal-700" />
+          )}
         </div>
 
+        <div className="min-w-0">
+          <h1 className="text-xl font-bold truncate">
+            {schoolName || t('appName')}
+          </h1>
+
+          <p className="text-sm text-teal-100 truncate">
+            {t('appTagline')}
+          </p>
+        </div>
+      </div>
         <div className="relative z-10 hidden lg:block space-y-6">
           <div>
             <h2 className="text-3xl font-bold leading-tight mb-2">
@@ -315,17 +363,27 @@ export function AuthPage() {
 
           {/* Mobile header */}
 
-          <div className="lg:hidden flex items-center justify-between mb-8">
-            <div className="flex items-center gap-2 text-teal-700">
-              <GraduationCap className="w-7 h-7" />
-
-              <span className="font-bold text-lg">
-                {t('appName')}
-              </span>
-            </div>
-
-            <LanguageSwitcher />
+       <div className="lg:hidden flex items-center justify-between mb-8">
+        <div className="flex items-center gap-2 text-teal-700 min-w-0">
+          <div className="w-10 h-10 rounded-lg border border-slate-200 bg-white flex items-center justify-center overflow-hidden shrink-0">
+            {logoUrl ? (
+              <img
+                src={logoUrl}
+                alt="Logo de l’établissement"
+                className="w-full h-full object-contain p-1"
+              />
+            ) : (
+              <GraduationCap className="w-6 h-6" />
+            )}
           </div>
+
+          <span className="font-bold text-lg truncate">
+            {schoolName || t('appName')}
+          </span>
+        </div>
+
+  <LanguageSwitcher />
+</div>
 
           <div className="bg-white rounded-2xl shadow-xl border border-slate-100 p-8">
 

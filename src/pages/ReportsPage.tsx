@@ -30,8 +30,15 @@ export function ReportsPage() {
     async function loadData() {
       setLoading(true);
       const [levelsRes, classesRes] = await Promise.all([
-        supabase.from('levels').select('*').order('sort_order'),
-        supabase.from('classes').select('*, level(*)').order('created_at'),
+        supabase
+          .from('levels')
+          .select('*')
+          .order('sort_order'),
+
+        supabase
+          .from('classes')
+          .select('*')
+          .order('created_at'),
       ]);
       setLevels(levelsRes.data as Level[] || []);
       setClasses(classesRes.data as ClassRoom[] || []);
@@ -47,8 +54,18 @@ export function ReportsPage() {
       if (classIds.length === 0) return;
 
       const [studentsRes, attRes] = await Promise.all([
-        supabase.from('students').select('*, class(*)').in('class_id', classIds).order('created_at'),
-        supabase.from('attendance').select('*').in('class_id', classIds).gte('date', startDate).lte('date', endDate),
+        supabase
+          .from('students')
+          .select('*')
+          .in('class_id', classIds)
+          .order('created_at'),
+
+        supabase
+          .from('attendance')
+          .select('*')
+          .in('class_id', classIds)
+          .gte('date', startDate)
+          .lte('date', endDate),
       ]);
 
       setStudents(studentsRes.data as Student[] || []);

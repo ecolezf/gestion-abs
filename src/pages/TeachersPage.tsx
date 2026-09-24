@@ -39,68 +39,89 @@ export function TeachersPage() {
     loadData();
   }, []);
 
-  async function loadData() {
-    setLoading(true);
-    const [teachersRes, classesRes, levelsRes, ctRes] = await Promise.all([
-      supabase.from('profiles').select('*').eq('role', 'teacher'),
-      supabase.from('classes').select('*, level(*)').order('created_at'),
-      supabase.from('levels').select('*').order('sort_order'),
-      supabase.from('class_teachers').select('class_id, teacher_id'),
-    ]);
+ async function loadData() {
+  setLoading(true);
 
-    const teachersData = (teachersRes.data || []) as Profile[];
-    const classesData = (classesRes.data || []) as ClassRoom[];
-    const levelsData = (levelsRes.data || []) as Level[];
+  const [teachersRes, classesRes, levelsRes, ctRes] = await Promise.all([
+    supabase
+      .from('profiles')
+      .select('*')
+      .eq('role', 'teacher'),
 
-    const tcMap: Record<string, ClassRoom[]> = {};
-    (ctRes.data || []).forEach((ct: any) => {
-      const cls = classesData.find((c) => c.id === ct.class_id);
-      if (cls) {
-        if (!tcMap[ct.teacher_id]) tcMap[ct.teacher_id] = [];
-        tcMap[ct.teacher_id].push(cls);
-      }
-    });
+    // IMPORTANT :
+    // On récupère les classes sans faire de relation level(*)
+    // car cette relation provoquait une erreur 400.
+    supabase
+      .from('classes')
+      .select('*')
+      .order('created_at'),
 
-    setTeachers(teachersData);
-    setClasses(classesData);
-    setLevels(levelsData);
-    setTeacherClassesMap(tcMap);
-    setLoading(false);
+    supabase
+      .from('levels')
+      .select('*')
+      .order('sort_order'),
+
+    supabase
+      .from('class_teachers')
+      .select('class_id, teacher_id'),
+  ]);
+
+  if (teachersRes.error) {
+    console.error('Erreur chargement enseignants:', teachersRes.error);
   }
 
-  async function assignClassToTeacher(teacherId: string, classId: string) {
-    const teacher = teachers.find((tch) => tch.id === teacherId);
-    const cls = classes.find((c) => c.id === classId);
-    if (!teacher || !teacher.subject || !cls || !cls.level) return;
-
-    if (!canTeacherTeachLevel(teacher.subject, cls.level.sort_order)) {
-      showToast(t('levelNotAllowed'), 'error');
-      return;
-    }
-
-    // Check subject already assigned to this class
-    const allCtForClass = teachers.filter((tch) =>
-      teacherClassesMap[tch.id]?.some((c) => c.id === classId)
-    );
-    if (allCtForClass.some((tch) => tch.subject === teacher.subject)) {
-      showToast(t('subjectAlreadyAssigned'), 'error');
-      return;
-    }
-
-    // Arabic: max 1 class
-    if (teacher.subject === 'arabic') {
-      const existing = teacherClassesMap[teacherId] || [];
-      if (existing.length > 0) {
-        showToast(t('arabicMaxOneClass'), 'error');
-        return;
-      }
-    }
-
-    const { error } = await supabase.from('class_teachers').insert({ class_id: classId, teacher_id: teacherId });
-    if (error) { showToast(t('errorOccurred'), 'error'); return; }
-    showToast(t('classAssigned'), 'success');
-    loadData();
+  if (classesRes.error) {
+    console.error('Erreur chargement classes:', classesRes.error);
   }
+
+  if (levelsRes.error) {
+    console.error('Erreur chargement niveaux:', levelsRes.error);
+  }
+
+  if (ctRes.error) {
+    console.error('Erreur chargement affectations enseignants/classes:', ctRes.error);
+  }
+
+  const teachersData = (teachersRes.data || []) as Profile[];
+  const rawClassesData = (classesRes.data || []) as ClassRoom[];
+  const levelsData = (levelsRes.data || []) as Level[];
+
+  // Création d'une map des niveaux par ID
+  const levelsMap: Record<string, Level> = {};
+
+  levelsData.forEach((level) => {
+    levelsMap[level.id] = level;
+  });
+
+  // On rattache manuellement le niveau à chaque classe
+  const classesData: ClassRoom[] = rawClassesData.map((cls) => ({
+    ...cls,
+    level: cls.level_id ? levelsMap[cls.level_id] : undefined,
+  }));
+
+  // Création de la map :
+  // teacher_id -> classes affectées
+  const tcMap: Record<string, ClassRoom[]> = {};
+
+  (ctRes.data || []).forEach((ct: any) => {
+    const cls = classesData.find((c) => c.id === ct.class_id);
+
+    if (cls) {
+      if (!tcMap[ct.teacher_id]) {
+        tcMap[ct.teacher_id] = [];
+      }
+
+      tcMap[ct.teacher_id].push(cls);
+    }
+  });
+
+  setTeachers(teachersData);
+  setClasses(classesData);
+  setLevels(levelsData);
+  setTeacherClassesMap(tcMap);
+
+  setLoading(false);
+}
 
   async function removeClassFromTeacher(teacherId: string, classId: string) {
     const { error } = await supabase.from('class_teachers')

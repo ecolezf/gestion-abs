@@ -15,6 +15,8 @@ import { supabase } from '@/lib/supabase';
 import { Input, Select } from '@/components/Input';
 import { Button } from '@/components/Button';
 import { useToast } from '@/components/Toast';
+import { useI18n } from '@/i18n/I18nContext';
+import type { Language } from '@/types/database';
 
 interface SchoolSettings {
   id: string;
@@ -80,8 +82,429 @@ const emptyForm: SettingsForm = {
   default_language: 'fr',
 };
 
+/*
+ * Traductions propres à cette page.
+ * Elles suivent automatiquement la langue de l'interface.
+ */
+const pageTranslations = {
+  fr: {
+    pageTitle: "Configuration de l’établissement",
+    pageDescription:
+      "Configurez les informations générales de votre établissement.",
+
+    generalInformation: "Informations générales",
+    identityDescription: "Nom et identité de l’établissement",
+
+    schoolName: "Nom de l’établissement",
+    schoolNamePlaceholder: "Ex. École El Falah",
+
+    nameArabic: "Nom en arabe",
+    nameArabicPlaceholder: "اسم المؤسسة",
+
+    nameEnglish: "Nom en anglais",
+    nameEnglishPlaceholder: "School name",
+
+    defaultLanguage: "Langue par défaut",
+    french: "Français",
+    arabic: "العربية",
+    english: "English",
+
+    schoolLogo: "Logo de l’établissement",
+    logoDescription:
+      "Le logo sera utilisé dans l’application et les futurs rapports.",
+
+    noLogo: "Aucun logo",
+    processing: "Traitement...",
+    changeLogo: "Changer le logo",
+    chooseLogo: "Choisir un logo",
+    remove: "Supprimer",
+
+    acceptedFormats:
+      "Formats acceptés : PNG, JPG, WEBP ou SVG.",
+    maximumSize: "Taille maximale : 5 Mo.",
+
+    location: "Adresse et localisation",
+    locationDescription:
+      "Informations permettant de localiser l’établissement",
+
+    address: "Adresse",
+    addressPlaceholder: "Ex. 12 rue des Écoles",
+
+    city: "Ville",
+    cityPlaceholder: "Ex. Alger",
+
+    wilaya: "Wilaya",
+    wilayaPlaceholder: "Ex. Alger",
+
+    country: "Pays",
+    countryPlaceholder: "Algérie",
+
+    googleMaps: "Lien Google Maps",
+    googleMapsPlaceholder: "https://maps.google.com/...",
+
+    latitude: "Latitude",
+    latitudePlaceholder: "Ex. 36.7525",
+
+    longitude: "Longitude",
+    longitudePlaceholder: "Ex. 3.0420",
+
+    contact: "Coordonnées",
+    contactDescription:
+      "Moyens de contact de l’établissement",
+
+    phone: "Téléphone",
+    phonePlaceholder: "+213 ...",
+
+    email: "Email",
+    emailPlaceholder: "contact@ecole.dz",
+
+    website: "Site web",
+    websitePlaceholder: "https://www.exemple.dz",
+
+    schoolYear: "Année scolaire",
+    schoolYearDescription:
+      "Période actuelle de l’année scolaire",
+
+    schoolYearLabel: "Année scolaire",
+    schoolYearPlaceholder: "2026-2027",
+
+    startDate: "Date de début",
+    endDate: "Date de fin",
+
+    saveConfiguration: "Enregistrer la configuration",
+    saving: "Enregistrement...",
+    loading: "Chargement de la configuration...",
+
+    requiredSchoolName:
+      "Le nom de l’établissement est obligatoire.",
+
+    gpsNumeric:
+      "Les coordonnées GPS doivent être numériques.",
+
+    loadError:
+      "Impossible de charger la configuration.",
+
+    saveError:
+      "Impossible d’enregistrer la configuration.",
+
+    saved:
+      "Configuration enregistrée avec succès.",
+
+    selectImage:
+      "Veuillez sélectionner une image.",
+
+    logoTooLarge:
+      "Le logo ne doit pas dépasser 5 Mo.",
+
+    uploadError:
+      "Impossible d’envoyer le logo",
+
+    logoUrlError:
+      "Le logo a été envoyé, mais son URL n’a pas pu être enregistrée.",
+
+    logoSaved:
+      "Logo enregistré avec succès.",
+
+    genericLogoError:
+      "Une erreur est survenue lors de l’envoi du logo.",
+
+    cannotDetermineLogo:
+      "Impossible de déterminer le fichier du logo.",
+
+    deleteLogoError:
+      "Impossible de supprimer le logo",
+
+    deleteLogoUrlError:
+      "Le fichier a été supprimé, mais la configuration n’a pas pu être mise à jour.",
+
+    logoDeleted:
+      "Logo supprimé avec succès.",
+
+    genericDeleteLogoError:
+      "Une erreur est survenue lors de la suppression du logo.",
+  },
+
+  ar: {
+    pageTitle: "إعدادات المؤسسة",
+    pageDescription:
+      "قم بتكوين المعلومات العامة الخاصة بمؤسستك.",
+
+    generalInformation: "المعلومات العامة",
+    identityDescription: "اسم وهوية المؤسسة",
+
+    schoolName: "اسم المؤسسة",
+    schoolNamePlaceholder: "مثال: مدرسة الفلاح",
+
+    nameArabic: "الاسم بالعربية",
+    nameArabicPlaceholder: "اسم المؤسسة",
+
+    nameEnglish: "الاسم بالإنجليزية",
+    nameEnglishPlaceholder: "School name",
+
+    defaultLanguage: "اللغة الافتراضية",
+    french: "Français",
+    arabic: "العربية",
+    english: "English",
+
+    schoolLogo: "شعار المؤسسة",
+    logoDescription:
+      "سيتم استخدام الشعار داخل التطبيق وفي التقارير المستقبلية.",
+
+    noLogo: "لا يوجد شعار",
+    processing: "جارٍ المعالجة...",
+    changeLogo: "تغيير الشعار",
+    chooseLogo: "اختيار شعار",
+    remove: "حذف",
+
+    acceptedFormats:
+      "الصيغ المقبولة: PNG و JPG و WEBP و SVG.",
+    maximumSize: "الحد الأقصى للحجم: 5 ميغابايت.",
+
+    location: "العنوان والموقع",
+    locationDescription:
+      "المعلومات التي تساعد على تحديد موقع المؤسسة",
+
+    address: "العنوان",
+    addressPlaceholder: "مثال: 12 شارع المدارس",
+
+    city: "المدينة",
+    cityPlaceholder: "مثال: الجزائر",
+
+    wilaya: "الولاية",
+    wilayaPlaceholder: "مثال: الجزائر",
+
+    country: "البلد",
+    countryPlaceholder: "الجزائر",
+
+    googleMaps: "رابط خرائط Google",
+    googleMapsPlaceholder: "https://maps.google.com/...",
+
+    latitude: "خط العرض",
+    latitudePlaceholder: "مثال: 36.7525",
+
+    longitude: "خط الطول",
+    longitudePlaceholder: "مثال: 3.0420",
+
+    contact: "معلومات الاتصال",
+    contactDescription:
+      "وسائل الاتصال الخاصة بالمؤسسة",
+
+    phone: "الهاتف",
+    phonePlaceholder: "+213 ...",
+
+    email: "البريد الإلكتروني",
+    emailPlaceholder: "contact@ecole.dz",
+
+    website: "الموقع الإلكتروني",
+    websitePlaceholder: "https://www.exemple.dz",
+
+    schoolYear: "السنة الدراسية",
+    schoolYearDescription:
+      "الفترة الحالية للسنة الدراسية",
+
+    schoolYearLabel: "السنة الدراسية",
+    schoolYearPlaceholder: "2026-2027",
+
+    startDate: "تاريخ البداية",
+    endDate: "تاريخ النهاية",
+
+    saveConfiguration: "حفظ الإعدادات",
+    saving: "جارٍ الحفظ...",
+    loading: "جارٍ تحميل الإعدادات...",
+
+    requiredSchoolName:
+      "اسم المؤسسة إلزامي.",
+
+    gpsNumeric:
+      "يجب أن تكون إحداثيات GPS أرقامًا.",
+
+    loadError:
+      "تعذر تحميل إعدادات المؤسسة.",
+
+    saveError:
+      "تعذر حفظ إعدادات المؤسسة.",
+
+    saved:
+      "تم حفظ إعدادات المؤسسة بنجاح.",
+
+    selectImage:
+      "يرجى اختيار صورة.",
+
+    logoTooLarge:
+      "يجب ألا يتجاوز حجم الشعار 5 ميغابايت.",
+
+    uploadError:
+      "تعذر رفع الشعار",
+
+    logoUrlError:
+      "تم رفع الشعار، ولكن تعذر حفظ رابطه.",
+
+    logoSaved:
+      "تم حفظ الشعار بنجاح.",
+
+    genericLogoError:
+      "حدث خطأ أثناء رفع الشعار.",
+
+    cannotDetermineLogo:
+      "تعذر تحديد ملف الشعار.",
+
+    deleteLogoError:
+      "تعذر حذف الشعار",
+
+    deleteLogoUrlError:
+      "تم حذف الملف، ولكن تعذر تحديث إعدادات المؤسسة.",
+
+    logoDeleted:
+      "تم حذف الشعار بنجاح.",
+
+    genericDeleteLogoError:
+      "حدث خطأ أثناء حذف الشعار.",
+  },
+
+  en: {
+    pageTitle: "School Configuration",
+    pageDescription:
+      "Configure your school's general information.",
+
+    generalInformation: "General Information",
+    identityDescription: "School name and identity",
+
+    schoolName: "School Name",
+    schoolNamePlaceholder: "e.g. El Falah School",
+
+    nameArabic: "Name in Arabic",
+    nameArabicPlaceholder: "اسم المؤسسة",
+
+    nameEnglish: "Name in English",
+    nameEnglishPlaceholder: "School name",
+
+    defaultLanguage: "Default Language",
+    french: "Français",
+    arabic: "العربية",
+    english: "English",
+
+    schoolLogo: "School Logo",
+    logoDescription:
+      "The logo will be used in the application and future reports.",
+
+    noLogo: "No logo",
+    processing: "Processing...",
+    changeLogo: "Change Logo",
+    chooseLogo: "Choose Logo",
+    remove: "Remove",
+
+    acceptedFormats:
+      "Accepted formats: PNG, JPG, WEBP or SVG.",
+    maximumSize: "Maximum size: 5 MB.",
+
+    location: "Address and Location",
+    locationDescription:
+      "Information used to locate the school",
+
+    address: "Address",
+    addressPlaceholder: "e.g. 12 School Street",
+
+    city: "City",
+    cityPlaceholder: "e.g. Algiers",
+
+    wilaya: "Wilaya",
+    wilayaPlaceholder: "e.g. Algiers",
+
+    country: "Country",
+    countryPlaceholder: "Algeria",
+
+    googleMaps: "Google Maps Link",
+    googleMapsPlaceholder: "https://maps.google.com/...",
+
+    latitude: "Latitude",
+    latitudePlaceholder: "e.g. 36.7525",
+
+    longitude: "Longitude",
+    longitudePlaceholder: "e.g. 3.0420",
+
+    contact: "Contact Information",
+    contactDescription:
+      "School contact information",
+
+    phone: "Phone",
+    phonePlaceholder: "+213 ...",
+
+    email: "Email",
+    emailPlaceholder: "contact@school.dz",
+
+    website: "Website",
+    websitePlaceholder: "https://www.example.dz",
+
+    schoolYear: "School Year",
+    schoolYearDescription:
+      "Current school year period",
+
+    schoolYearLabel: "School Year",
+    schoolYearPlaceholder: "2026-2027",
+
+    startDate: "Start Date",
+    endDate: "End Date",
+
+    saveConfiguration: "Save Configuration",
+    saving: "Saving...",
+    loading: "Loading configuration...",
+
+    requiredSchoolName:
+      "School name is required.",
+
+    gpsNumeric:
+      "GPS coordinates must be numeric.",
+
+    loadError:
+      "Unable to load the school configuration.",
+
+    saveError:
+      "Unable to save the school configuration.",
+
+    saved:
+      "Configuration saved successfully.",
+
+    selectImage:
+      "Please select an image.",
+
+    logoTooLarge:
+      "The logo must not exceed 5 MB.",
+
+    uploadError:
+      "Unable to upload the logo",
+
+    logoUrlError:
+      "The logo was uploaded, but its URL could not be saved.",
+
+    logoSaved:
+      "Logo saved successfully.",
+
+    genericLogoError:
+      "An error occurred while uploading the logo.",
+
+    cannotDetermineLogo:
+      "Unable to determine the logo file.",
+
+    deleteLogoError:
+      "Unable to delete the logo",
+
+    deleteLogoUrlError:
+      "The file was deleted, but the configuration could not be updated.",
+
+    logoDeleted:
+      "Logo deleted successfully.",
+
+    genericDeleteLogoError:
+      "An error occurred while deleting the logo.",
+  },
+} as const;
+
 export function SettingsPage() {
+  const { lang, dir } = useI18n();
   const { showToast } = useToast();
+
+  const labels =
+    pageTranslations[lang as Language] || pageTranslations.fr;
 
   const [form, setForm] = useState<SettingsForm>(emptyForm);
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -112,11 +535,16 @@ export function SettingsPage() {
       .maybeSingle();
 
     if (error) {
-      console.error('Erreur chargement configuration:', error);
+      console.error(
+        'Erreur chargement configuration:',
+        error
+      );
+
       showToast(
-        'Impossible de charger la configuration.',
+        labels.loadError,
         'error'
       );
+
       setLoading(false);
       return;
     }
@@ -147,14 +575,15 @@ export function SettingsPage() {
         school_year: settings.school_year ?? '',
         start_date: settings.start_date ?? '',
         end_date: settings.end_date ?? '',
-        default_language: settings.default_language ?? 'fr',
+        default_language:
+          settings.default_language ?? 'fr',
       });
 
       setLogoUrl(
-  settings.logo_url
-    ? `${settings.logo_url}?v=${Date.now()}`
-    : null
-);
+        settings.logo_url
+          ? `${settings.logo_url}?v=${Date.now()}`
+          : null
+      );
     }
 
     setLoading(false);
@@ -164,12 +593,14 @@ export function SettingsPage() {
     loadSettings();
   }, []);
 
-  const handleSave = async (event: React.FormEvent) => {
+  const handleSave = async (
+    event: React.FormEvent
+  ) => {
     event.preventDefault();
 
     if (!form.school_name.trim()) {
       showToast(
-        'Le nom de l’établissement est obligatoire.',
+        labels.requiredSchoolName,
         'error'
       );
       return;
@@ -188,13 +619,16 @@ export function SettingsPage() {
         : Number(form.longitude);
 
     if (
-      (latitude !== null && Number.isNaN(latitude)) ||
-      (longitude !== null && Number.isNaN(longitude))
+      (latitude !== null &&
+        Number.isNaN(latitude)) ||
+      (longitude !== null &&
+        Number.isNaN(longitude))
     ) {
       showToast(
-        'Les coordonnées GPS doivent être numériques.',
+        labels.gpsNumeric,
         'error'
       );
+
       setSaving(false);
       return;
     }
@@ -202,26 +636,61 @@ export function SettingsPage() {
     const { error } = await supabase
       .from('school_settings')
       .update({
-        school_name: form.school_name.trim(),
-        school_name_ar: form.school_name_ar.trim() || null,
-        school_name_en: form.school_name_en.trim() || null,
-        address: form.address.trim() || null,
-        city: form.city.trim() || null,
-        wilaya: form.wilaya.trim() || null,
-        country: form.country.trim() || null,
-        phone: form.phone.trim() || null,
-        email: form.email.trim() || null,
-        website: form.website.trim() || null,
+        school_name:
+          form.school_name.trim(),
+
+        school_name_ar:
+          form.school_name_ar.trim() || null,
+
+        school_name_en:
+          form.school_name_en.trim() || null,
+
+        address:
+          form.address.trim() || null,
+
+        city:
+          form.city.trim() || null,
+
+        wilaya:
+          form.wilaya.trim() || null,
+
+        country:
+          form.country.trim() || null,
+
+        phone:
+          form.phone.trim() || null,
+
+        email:
+          form.email.trim() || null,
+
+        website:
+          form.website.trim() || null,
+
         latitude,
         longitude,
-        maps_url: form.maps_url.trim() || null,
-        school_year: form.school_year.trim() || null,
-        start_date: form.start_date || null,
-        end_date: form.end_date || null,
-        default_language: form.default_language,
-        updated_at: new Date().toISOString(),
+
+        maps_url:
+          form.maps_url.trim() || null,
+
+        school_year:
+          form.school_year.trim() || null,
+
+        start_date:
+          form.start_date || null,
+
+        end_date:
+          form.end_date || null,
+
+        default_language:
+          form.default_language,
+
+        updated_at:
+          new Date().toISOString(),
       })
-      .eq('singleton_key', 'school');
+      .eq(
+        'singleton_key',
+        'school'
+      );
 
     if (error) {
       console.error(
@@ -230,7 +699,7 @@ export function SettingsPage() {
       );
 
       showToast(
-        'Impossible d’enregistrer la configuration.',
+        labels.saveError,
         'error'
       );
 
@@ -239,7 +708,7 @@ export function SettingsPage() {
     }
 
     showToast(
-      'Configuration enregistrée avec succès.',
+      labels.saved,
       'success'
     );
 
@@ -253,16 +722,16 @@ export function SettingsPage() {
   const handleLogoChange = async (
     event: React.ChangeEvent<HTMLInputElement>
   ) => {
-    const file = event.target.files?.[0];
+    const file =
+      event.target.files?.[0];
 
     if (!file) {
       return;
     }
 
-    // Vérification du type
     if (!file.type.startsWith('image/')) {
       showToast(
-        'Veuillez sélectionner une image.',
+        labels.selectImage,
         'error'
       );
 
@@ -270,12 +739,12 @@ export function SettingsPage() {
       return;
     }
 
-    // Limite de taille : 5 Mo
-    const maxSize = 5 * 1024 * 1024;
+    const maxSize =
+      5 * 1024 * 1024;
 
     if (file.size > maxSize) {
       showToast(
-        'Le logo ne doit pas dépasser 5 Mo.',
+        labels.logoTooLarge,
         'error'
       );
 
@@ -286,26 +755,28 @@ export function SettingsPage() {
     setUploadingLogo(true);
 
     try {
-      /*
-       * On utilise toujours le même emplacement :
-       * school-assets/logo
-       *
-       * upsert: true permet de remplacer
-       * automatiquement l'ancien logo.
-       */
       const fileExtension =
-        file.name.split('.').pop()?.toLowerCase() || 'png';
+        file.name
+          .split('.')
+          .pop()
+          ?.toLowerCase() || 'png';
 
-      const filePath = `logo.${fileExtension}`;
+      const filePath =
+        `logo.${fileExtension}`;
 
-      const { error: uploadError } =
-        await supabase.storage
-          .from('school-assets')
-          .upload(filePath, file, {
+      const {
+        error: uploadError,
+      } = await supabase.storage
+        .from('school-assets')
+        .upload(
+          filePath,
+          file,
+          {
             cacheControl: '3600',
             upsert: true,
             contentType: file.type,
-          });
+          }
+        );
 
       if (uploadError) {
         console.error(
@@ -314,7 +785,7 @@ export function SettingsPage() {
         );
 
         showToast(
-          `Impossible d’envoyer le logo : ${uploadError.message}`,
+          `${labels.uploadError} : ${uploadError.message}`,
           'error'
         );
 
@@ -327,18 +798,26 @@ export function SettingsPage() {
         data: publicUrlData,
       } = supabase.storage
         .from('school-assets')
-        .getPublicUrl(filePath);
+        .getPublicUrl(
+          filePath
+        );
 
-      const publicUrl = publicUrlData.publicUrl;
+      const publicUrl =
+        publicUrlData.publicUrl;
 
-      const { error: updateError } =
-        await supabase
-          .from('school_settings')
-          .update({
-            logo_url: publicUrl,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('singleton_key', 'school');
+      const {
+        error: updateError,
+      } = await supabase
+        .from('school_settings')
+        .update({
+          logo_url: publicUrl,
+          updated_at:
+            new Date().toISOString(),
+        })
+        .eq(
+          'singleton_key',
+          'school'
+        );
 
       if (updateError) {
         console.error(
@@ -347,7 +826,7 @@ export function SettingsPage() {
         );
 
         showToast(
-          'Le logo a été envoyé, mais son URL n’a pas pu être enregistrée.',
+          labels.logoUrlError,
           'error'
         );
 
@@ -356,17 +835,22 @@ export function SettingsPage() {
         return;
       }
 
-      setLogoUrl(`${publicUrl}?v=${Date.now()}`);
+      setLogoUrl(
+        `${publicUrl}?v=${Date.now()}`
+      );
 
       showToast(
-        'Logo enregistré avec succès.',
+        labels.logoSaved,
         'success'
       );
     } catch (error) {
-      console.error('Erreur logo:', error);
+      console.error(
+        'Erreur logo:',
+        error
+      );
 
       showToast(
-        'Une erreur est survenue lors de l’envoi du logo.',
+        labels.genericLogoError,
         'error'
       );
     }
@@ -383,18 +867,20 @@ export function SettingsPage() {
     setUploadingLogo(true);
 
     try {
-      /*
-       * Le fichier peut avoir différentes extensions.
-       * On récupère le chemin depuis l’URL enregistrée.
-       */
-      const url = new URL(logoUrl);
-      const marker = '/school-assets/';
+      const url =
+        new URL(logoUrl);
 
-      const markerIndex = url.pathname.indexOf(marker);
+      const marker =
+        '/school-assets/';
+
+      const markerIndex =
+        url.pathname.indexOf(
+          marker
+        );
 
       if (markerIndex === -1) {
         showToast(
-          'Impossible de déterminer le fichier du logo.',
+          labels.cannotDetermineLogo,
           'error'
         );
 
@@ -402,16 +888,19 @@ export function SettingsPage() {
         return;
       }
 
-      const filePath = decodeURIComponent(
-        url.pathname.substring(
-          markerIndex + marker.length
-        )
-      );
+      const filePath =
+        decodeURIComponent(
+          url.pathname.substring(
+            markerIndex +
+              marker.length
+          )
+        );
 
-      const { error: removeError } =
-        await supabase.storage
-          .from('school-assets')
-          .remove([filePath]);
+      const {
+        error: removeError,
+      } = await supabase.storage
+        .from('school-assets')
+        .remove([filePath]);
 
       if (removeError) {
         console.error(
@@ -420,7 +909,7 @@ export function SettingsPage() {
         );
 
         showToast(
-          `Impossible de supprimer le logo : ${removeError.message}`,
+          `${labels.deleteLogoError} : ${removeError.message}`,
           'error'
         );
 
@@ -428,14 +917,19 @@ export function SettingsPage() {
         return;
       }
 
-      const { error: updateError } =
-        await supabase
-          .from('school_settings')
-          .update({
-            logo_url: null,
-            updated_at: new Date().toISOString(),
-          })
-          .eq('singleton_key', 'school');
+      const {
+        error: updateError,
+      } = await supabase
+        .from('school_settings')
+        .update({
+          logo_url: null,
+          updated_at:
+            new Date().toISOString(),
+        })
+        .eq(
+          'singleton_key',
+          'school'
+        );
 
       if (updateError) {
         console.error(
@@ -444,7 +938,7 @@ export function SettingsPage() {
         );
 
         showToast(
-          'Le fichier a été supprimé, mais la configuration n’a pas pu être mise à jour.',
+          labels.deleteLogoUrlError,
           'error'
         );
 
@@ -455,7 +949,7 @@ export function SettingsPage() {
       setLogoUrl(null);
 
       showToast(
-        'Logo supprimé avec succès.',
+        labels.logoDeleted,
         'success'
       );
     } catch (error) {
@@ -465,7 +959,7 @@ export function SettingsPage() {
       );
 
       showToast(
-        'Une erreur est survenue lors de la suppression du logo.',
+        labels.genericDeleteLogoError,
         'error'
       );
     }
@@ -475,12 +969,15 @@ export function SettingsPage() {
 
   if (loading) {
     return (
-      <div className="min-h-[400px] flex items-center justify-center">
+      <div
+        className="min-h-[400px] flex items-center justify-center"
+        dir={dir}
+      >
         <div className="flex flex-col items-center gap-3">
           <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
 
           <p className="text-sm text-slate-500">
-            Chargement de la configuration...
+            {labels.loading}
           </p>
         </div>
       </div>
@@ -488,15 +985,18 @@ export function SettingsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div
+      className="max-w-5xl mx-auto space-y-6"
+      dir={dir}
+    >
       {/* En-tête */}
       <div>
         <h1 className="text-2xl font-bold text-slate-800">
-          Configuration de l’établissement
+          {labels.pageTitle}
         </h1>
 
         <p className="mt-1 text-sm text-slate-500">
-          Configurez les informations générales de votre établissement.
+          {labels.pageDescription}
         </p>
       </div>
 
@@ -504,7 +1004,7 @@ export function SettingsPage() {
         onSubmit={handleSave}
         className="space-y-6"
       >
-        {/* Identité */}
+        {/* Informations générales */}
         <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center">
@@ -513,11 +1013,11 @@ export function SettingsPage() {
 
             <div>
               <h2 className="font-semibold text-slate-800">
-                Informations générales
+                {labels.generalInformation}
               </h2>
 
               <p className="text-sm text-slate-500">
-                Nom et identité de l’établissement
+                {labels.identityDescription}
               </p>
             </div>
           </div>
@@ -525,7 +1025,7 @@ export function SettingsPage() {
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
               <Input
-                label="Nom de l’établissement *"
+                label={`${labels.schoolName} *`}
                 value={form.school_name}
                 onChange={(e) =>
                   updateField(
@@ -533,12 +1033,14 @@ export function SettingsPage() {
                     e.target.value
                   )
                 }
-                placeholder="Ex. École El Falah"
+                placeholder={
+                  labels.schoolNamePlaceholder
+                }
               />
             </div>
 
             <Input
-              label="Nom en arabe"
+              label={labels.nameArabic}
               value={form.school_name_ar}
               onChange={(e) =>
                 updateField(
@@ -547,11 +1049,13 @@ export function SettingsPage() {
                 )
               }
               dir="rtl"
-              placeholder="اسم المؤسسة"
+              placeholder={
+                labels.nameArabicPlaceholder
+              }
             />
 
             <Input
-              label="Nom en anglais"
+              label={labels.nameEnglish}
               value={form.school_name_en}
               onChange={(e) =>
                 updateField(
@@ -559,11 +1063,13 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="School name"
+              placeholder={
+                labels.nameEnglishPlaceholder
+              }
             />
 
             <Select
-              label="Langue par défaut"
+              label={labels.defaultLanguage}
               value={form.default_language}
               onChange={(e) =>
                 updateField(
@@ -576,15 +1082,15 @@ export function SettingsPage() {
               }
             >
               <option value="fr">
-                Français
+                {labels.french}
               </option>
 
               <option value="ar">
-                العربية
+                {labels.arabic}
               </option>
 
               <option value="en">
-                English
+                {labels.english}
               </option>
             </Select>
           </div>
@@ -599,41 +1105,31 @@ export function SettingsPage() {
 
             <div>
               <h2 className="font-semibold text-slate-800">
-                Logo de l’établissement
+                {labels.schoolLogo}
               </h2>
 
               <p className="text-sm text-slate-500">
-                Le logo sera utilisé dans l’application et les futurs rapports.
+                {labels.logoDescription}
               </p>
             </div>
           </div>
 
           <div className="p-6">
             <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6">
-              {/* Aperçu */}
-              <div className="w-36 h-36 rounded-2xl border-2 border-red-500 bg-white flex items-center justify-center shrink-0">
-              {logoUrl ? (
-                        <div className="w-full h-full flex flex-col items-center justify-center">
-                           <img
-  src={logoUrl}
-  alt="Logo de l’établissement"
-  style={{
-    width: '120px',
-    height: '120px',
-    objectFit: 'contain',
-    display: 'block',
-  }}
-/>
-
-                            <p className="text-[10px] text-slate-400 break-all px-2 text-center">
-                            {logoUrl}
-                            </p>
-                        </div>
-                        ) : (
+              {/* Aperçu du logo */}
+              <div className="w-36 h-36 rounded-2xl border-2 border-dashed border-slate-300 bg-slate-50 flex items-center justify-center overflow-hidden shrink-0">
+                {logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={labels.schoolLogo}
+                    className="w-full h-full object-contain p-3"
+                  />
+                ) : (
                   <div className="flex flex-col items-center gap-2 text-slate-400">
                     <ImageIcon className="w-10 h-10" />
+
                     <span className="text-xs">
-                      Aucun logo
+                      {labels.noLogo}
                     </span>
                   </div>
                 )}
@@ -659,14 +1155,15 @@ export function SettingsPage() {
                     {uploadingLogo ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Traitement...
+                        {labels.processing}
                       </>
                     ) : (
                       <>
                         <Upload className="w-4 h-4" />
+
                         {logoUrl
-                          ? 'Changer le logo'
-                          : 'Choisir un logo'}
+                          ? labels.changeLogo
+                          : labels.chooseLogo}
                       </>
                     )}
                   </Button>
@@ -679,22 +1176,22 @@ export function SettingsPage() {
                       disabled={uploadingLogo}
                     >
                       <Trash2 className="w-4 h-4" />
-                      Supprimer
+                      {labels.remove}
                     </Button>
                   )}
                 </div>
 
                 <p className="text-xs text-slate-400">
-                  Formats acceptés : PNG, JPG, WEBP ou SVG.
+                  {labels.acceptedFormats}
                   <br />
-                  Taille maximale : 5 Mo.
+                  {labels.maximumSize}
                 </p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Adresse */}
+        {/* Adresse et localisation */}
         <section className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
           <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
@@ -703,11 +1200,11 @@ export function SettingsPage() {
 
             <div>
               <h2 className="font-semibold text-slate-800">
-                Adresse et localisation
+                {labels.location}
               </h2>
 
               <p className="text-sm text-slate-500">
-                Informations permettant de localiser l’établissement
+                {labels.locationDescription}
               </p>
             </div>
           </div>
@@ -715,7 +1212,7 @@ export function SettingsPage() {
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
               <Input
-                label="Adresse"
+                label={labels.address}
                 value={form.address}
                 onChange={(e) =>
                   updateField(
@@ -723,21 +1220,28 @@ export function SettingsPage() {
                     e.target.value
                   )
                 }
-                placeholder="Ex. 12 rue des Écoles"
+                placeholder={
+                  labels.addressPlaceholder
+                }
               />
             </div>
 
             <Input
-              label="Ville"
+              label={labels.city}
               value={form.city}
               onChange={(e) =>
-                updateField('city', e.target.value)
+                updateField(
+                  'city',
+                  e.target.value
+                )
               }
-              placeholder="Ex. Alger"
+              placeholder={
+                labels.cityPlaceholder
+              }
             />
 
             <Input
-              label="Wilaya"
+              label={labels.wilaya}
               value={form.wilaya}
               onChange={(e) =>
                 updateField(
@@ -745,11 +1249,13 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="Ex. Alger"
+              placeholder={
+                labels.wilayaPlaceholder
+              }
             />
 
             <Input
-              label="Pays"
+              label={labels.country}
               value={form.country}
               onChange={(e) =>
                 updateField(
@@ -757,11 +1263,13 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="Algérie"
+              placeholder={
+                labels.countryPlaceholder
+              }
             />
 
             <Input
-              label="Lien Google Maps"
+              label={labels.googleMaps}
               value={form.maps_url}
               onChange={(e) =>
                 updateField(
@@ -769,11 +1277,14 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="https://maps.google.com/..."
+              placeholder={
+                labels.googleMapsPlaceholder
+              }
+              dir="ltr"
             />
 
             <Input
-              label="Latitude"
+              label={labels.latitude}
               type="number"
               step="any"
               value={form.latitude}
@@ -783,11 +1294,14 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="Ex. 36.7525"
+              placeholder={
+                labels.latitudePlaceholder
+              }
+              dir="ltr"
             />
 
             <Input
-              label="Longitude"
+              label={labels.longitude}
               type="number"
               step="any"
               value={form.longitude}
@@ -797,7 +1311,10 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="Ex. 3.0420"
+              placeholder={
+                labels.longitudePlaceholder
+              }
+              dir="ltr"
             />
           </div>
         </section>
@@ -811,18 +1328,18 @@ export function SettingsPage() {
 
             <div>
               <h2 className="font-semibold text-slate-800">
-                Coordonnées
+                {labels.contact}
               </h2>
 
               <p className="text-sm text-slate-500">
-                Moyens de contact de l’établissement
+                {labels.contactDescription}
               </p>
             </div>
           </div>
 
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
             <Input
-              label="Téléphone"
+              label={labels.phone}
               type="tel"
               value={form.phone}
               onChange={(e) =>
@@ -831,11 +1348,14 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="+213 ..."
+              placeholder={
+                labels.phonePlaceholder
+              }
+              dir="ltr"
             />
 
             <Input
-              label="Email"
+              label={labels.email}
               type="email"
               value={form.email}
               onChange={(e) =>
@@ -844,12 +1364,15 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="contact@ecole.dz"
+              placeholder={
+                labels.emailPlaceholder
+              }
+              dir="ltr"
             />
 
             <div className="md:col-span-2">
               <Input
-                label="Site web"
+                label={labels.website}
                 type="url"
                 value={form.website}
                 onChange={(e) =>
@@ -858,7 +1381,10 @@ export function SettingsPage() {
                     e.target.value
                   )
                 }
-                placeholder="https://www.exemple.dz"
+                placeholder={
+                  labels.websitePlaceholder
+                }
+                dir="ltr"
               />
             </div>
           </div>
@@ -873,18 +1399,18 @@ export function SettingsPage() {
 
             <div>
               <h2 className="font-semibold text-slate-800">
-                Année scolaire
+                {labels.schoolYear}
               </h2>
 
               <p className="text-sm text-slate-500">
-                Période actuelle de l’année scolaire
+                {labels.schoolYearDescription}
               </p>
             </div>
           </div>
 
           <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
             <Input
-              label="Année scolaire"
+              label={labels.schoolYearLabel}
               value={form.school_year}
               onChange={(e) =>
                 updateField(
@@ -892,11 +1418,14 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="2026-2027"
+              placeholder={
+                labels.schoolYearPlaceholder
+              }
+              dir="ltr"
             />
 
             <Input
-              label="Date de début"
+              label={labels.startDate}
               type="date"
               value={form.start_date}
               onChange={(e) =>
@@ -905,10 +1434,11 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
+              dir="ltr"
             />
 
             <Input
-              label="Date de fin"
+              label={labels.endDate}
               type="date"
               value={form.end_date}
               onChange={(e) =>
@@ -917,6 +1447,7 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
+              dir="ltr"
             />
           </div>
         </section>
@@ -931,12 +1462,12 @@ export function SettingsPage() {
             {saving ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Enregistrement...
+                {labels.saving}
               </>
             ) : (
               <>
                 <Save className="w-5 h-5" />
-                Enregistrer la configuration
+                {labels.saveConfiguration}
               </>
             )}
           </Button>

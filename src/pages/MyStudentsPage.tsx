@@ -149,62 +149,128 @@ export function MyStudentsPage() {
     setShowAddModal(true);
   }
 
-  function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+      function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+      const file = e.target.files?.[0];
+      if (!file) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      try {
-        const data = new Uint8Array(event.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheet = workbook.Sheets[workbook.SheetNames[0]];
-        const rows = XLSX.utils.sheet_to_json<any>(sheet, { defval: '' });
-        setImportData(rows);
-        setImportStep('preview');
-      } catch {
-        showToast(t('invalidFileFormat'), 'error');
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  }
+      const reader = new FileReader();
 
-  async function processImport() {
-    if (!selectedClass || importData.length === 0) return;
+      reader.onload = (event) => {
+        try {
+          const data = new Uint8Array(event.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const sheet = workbook.Sheets[workbook.SheetNames[0]];
 
-    const rows = importData.map((row) => {
-      const fn = row['first_name'] || row['prénom'] || row['Prénom'] || row['firstName'] || row['name'] || row['nom'] || Object.values(row)[0] || '';
-      const ln = row['last_name'] || row['nom'] || row['Nom'] || row['lastName'] || row['surname'] || Object.values(row)[1] || '';
-      const num = row['number'] || row['numéro'] || row['Numéro'] || row['student_number'] || '';
-      return {
-        class_id: selectedClass.id,
-        first_name_fr: String(fn).trim(),
-        first_name_ar: String(fn).trim(),
-        first_name_en: String(fn).trim(),
-        last_name_fr: String(ln).trim(),
-        last_name_ar: String(ln).trim(),
-        last_name_en: String(ln).trim(),
-        student_number: num ? String(num).trim() : null,
+          const rows = XLSX.utils.sheet_to_json<any>(sheet, { defval: '' });
+
+          setImportData(rows);
+          setImportStep('preview');
+        } catch {
+          showToast(t('invalidFileFormat'), 'error');
+        }
       };
-    }).filter(r => r.first_name_fr && r.last_name_fr);
 
-    if (rows.length === 0) {
-      showToast(t('noValidRows'), 'error');
-      return;
+      reader.readAsArrayBuffer(file);
     }
 
-    const { error } = await supabase.from('students').insert(rows);
-    if (error) {
-      showToast(t('importError'), 'error');
-      return;
-    }
+      async function processImport() {
+      if (!selectedClass || importData.length === 0) return;
 
-    showToast(`${rows.length} ${t('studentsImported')}`, 'success');
-    setShowImportModal(false);
-    setImportData([]);
-    setImportStep('upload');
-    loadStudents(selectedClass.id);
-  }
+      const rows = importData
+        .map((row) => {
+          const firstNameFr =
+            row['first_name_fr'] ||
+            row['firstNameFr'] ||
+            row['first_name'] ||
+            row['prénom'] ||
+            row['Prénom'] ||
+            '';
+
+          const firstNameAr =
+            row['first_name_ar'] ||
+            row['firstNameAr'] ||
+            '';
+
+          const firstNameEn =
+            row['first_name_en'] ||
+            row['firstNameEn'] ||
+            '';
+
+          const lastNameFr =
+            row['last_name_fr'] ||
+            row['lastNameFr'] ||
+            row['last_name'] ||
+            row['nom'] ||
+            row['Nom'] ||
+            '';
+
+          const lastNameAr =
+            row['last_name_ar'] ||
+            row['lastNameAr'] ||
+            '';
+
+          const lastNameEn =
+            row['last_name_en'] ||
+            row['lastNameEn'] ||
+            '';
+
+          const num =
+            row['student_number'] ||
+            row['number'] ||
+            row['numéro'] ||
+            row['Numéro'] ||
+            '';
+
+          return {
+            class_id: selectedClass.id,
+
+            first_name_fr: String(firstNameFr).trim(),
+            first_name_ar: String(firstNameAr).trim() || String(firstNameFr).trim(),
+            first_name_en: String(firstNameEn).trim() || String(firstNameFr).trim(),
+
+            last_name_fr: String(lastNameFr).trim(),
+            last_name_ar: String(lastNameAr).trim() || String(lastNameFr).trim(),
+            last_name_en: String(lastNameEn).trim() || String(lastNameFr).trim(),
+
+            student_number: num
+              ? String(num).trim()
+              : null,
+          };
+        })
+        .filter(
+          (r) =>
+            r.first_name_fr &&
+            r.last_name_fr
+        );
+
+      if (rows.length === 0) {
+        showToast(t('noValidRows'), 'error');
+        return;
+      }
+
+      const { error } = await supabase
+        .from('students')
+        .insert(rows);
+
+      if (error) {
+        console.error('Erreur import élèves:', error);
+        showToast(t('importError'), 'error');
+        return;
+      }
+
+      showToast(
+        `${rows.length} ${t('studentsImported')}`,
+        'success'
+      );
+
+      setShowImportModal(false);
+      setImportData([]);
+      setImportStep('upload');
+
+      if (selectedClass) {
+        loadStudents(selectedClass.id);
+      }
+    }
 
   function downloadTemplate() {
     const ws = XLSX.utils.json_to_sheet([
@@ -477,16 +543,58 @@ export function MyStudentsPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-50">
-                  {importData.slice(0, 50).map((row, i) => {
-                    const fn = row['first_name'] || row['prénom'] || row['Prénom'] || row['firstName'] || row['name'] || row['nom'] || Object.values(row)[0] || '';
-                    const ln = row['last_name'] || row['nom'] || row['Nom'] || row['lastName'] || row['surname'] || Object.values(row)[1] || '';
-                    const num = row['number'] || row['numéro'] || row['Numéro'] || row['student_number'] || '';
+                 {importData.slice(0, 50).map((row, i) => {
+                    const firstName =
+                      lang === 'ar'
+                        ? row['first_name_ar'] || row['firstNameAr'] || ''
+                        : lang === 'en'
+                          ? row['first_name_en'] || row['firstNameEn'] || ''
+                          : row['first_name_fr'] ||
+                            row['firstNameFr'] ||
+                            row['first_name'] ||
+                            row['prénom'] ||
+                            row['Prénom'] ||
+                            '';
+
+                    const lastName =
+                      lang === 'ar'
+                        ? row['last_name_ar'] || row['lastNameAr'] || ''
+                        : lang === 'en'
+                          ? row['last_name_en'] || row['lastNameEn'] || ''
+                          : row['last_name_fr'] ||
+                            row['lastNameFr'] ||
+                            row['last_name'] ||
+                            row['nom'] ||
+                            row['Nom'] ||
+                            '';
+
+                    const num =
+                      row['student_number'] ||
+                      row['number'] ||
+                      row['numéro'] ||
+                      row['Numéro'] ||
+                      '';
+
                     return (
-                      <tr key={i} className="hover:bg-slate-50/50">
-                        <td className="px-3 py-2 text-xs text-slate-400">{i + 1}</td>
-                        <td className="px-3 py-2 text-xs text-slate-700">{String(fn)}</td>
-                        <td className="px-3 py-2 text-xs text-slate-700">{String(ln)}</td>
-                        <td className="px-3 py-2 text-xs text-slate-500">{String(num)}</td>
+                      <tr
+                        key={i}
+                        className="hover:bg-slate-50/50"
+                      >
+                        <td className="px-3 py-2 text-xs text-slate-400">
+                          {i + 1}
+                        </td>
+
+                        <td className="px-3 py-2 text-xs text-slate-700">
+                          {String(firstName)}
+                        </td>
+
+                        <td className="px-3 py-2 text-xs text-slate-700">
+                          {String(lastName)}
+                        </td>
+
+                        <td className="px-3 py-2 text-xs text-slate-500">
+                          {String(num)}
+                        </td>
                       </tr>
                     );
                   })}

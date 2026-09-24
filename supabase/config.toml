@@ -1,0 +1,4 @@
+[functions.create-teacher]
+verify_jwt = false
+[functions.setup-admin]
+verify_jwt = false

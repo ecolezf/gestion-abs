@@ -14,8 +14,11 @@ export function LanguageSwitcher() {
         setOpen(false);
       }
     }
+
     document.addEventListener('mousedown', handleClick);
-    return () => document.removeEventListener('mousedown', handleClick);
+
+    return () =>
+      document.removeEventListener('mousedown', handleClick);
   }, []);
 
   const current = languages.find((l) => l.code === lang)!;
@@ -29,8 +32,9 @@ export function LanguageSwitcher() {
         <Globe className="w-4 h-4" />
         <span>{current.flag}</span>
       </button>
+
       {open && (
-        <div className="absolute top-full mt-1 end-0 bg-white rounded-lg shadow-lg border border-slate-200 py-1 min-w-[140px] z-50">
+        <div className="absolute top-full mt-2 end-0 bg-white rounded-lg shadow-lg border border-slate-200 py-1 min-w-[140px] z-[99999]">
           {languages.map((l) => (
             <button
               key={l.code}
@@ -39,7 +43,9 @@ export function LanguageSwitcher() {
                 setOpen(false);
               }}
               className={`w-full text-start px-4 py-2 text-sm hover:bg-slate-50 transition-colors ${
-                lang === l.code ? 'text-teal-600 font-semibold bg-teal-50' : 'text-slate-700'
+                lang === l.code
+                  ? 'text-teal-600 font-semibold bg-teal-50'
+                  : 'text-slate-700'
               }`}
             >
               {l.label}

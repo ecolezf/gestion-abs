@@ -58,3 +58,105 @@ body {
 /* Border utilities for RTL */
 .border-r { border-inline-start-width: 1px; border-inline-end-width: 0; }
 .border-l { border-inline-end-width: 1px; border-inline-start-width: 0; }
+
+/* =========================================================
+   MODE NUIT
+   ========================================================= */
+
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #0f172a;
+  color: #e2e8f0;
+}
+
+/* Fonds principaux */
+
+html.dark .bg-white {
+  background-color: #1e293b;
+}
+
+html.dark .bg-slate-50 {
+  background-color: #0f172a;
+}
+
+html.dark .bg-slate-100 {
+  background-color: #1e293b;
+}
+
+html.dark .bg-slate-200 {
+  background-color: #334155;
+}
+
+/* Textes */
+
+html.dark .text-slate-800 {
+  color: #f1f5f9;
+}
+
+html.dark .text-slate-700 {
+  color: #e2e8f0;
+}
+
+html.dark .text-slate-600 {
+  color: #cbd5e1;
+}
+
+html.dark .text-slate-500 {
+  color: #94a3b8;
+}
+
+html.dark .text-slate-400 {
+  color: #94a3b8;
+}
+
+/* Bordures */
+
+html.dark .border-slate-100 {
+  border-color: #334155;
+}
+
+html.dark .border-slate-200 {
+  border-color: #475569;
+}
+
+html.dark .border-slate-300 {
+  border-color: #475569;
+}
+
+/* Champs de formulaire */
+
+html.dark input,
+html.dark textarea,
+html.dark select {
+  background-color: #1e293b;
+  color: #f1f5f9;
+  border-color: #475569;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #94a3b8;
+}
+
+/* Cartes secondaires */
+
+html.dark .bg-slate-50 {
+  background-color: #172033;
+}
+
+/* Scrollbar */
+
+html.dark ::-webkit-scrollbar-track {
+  background: #0f172a;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
+html.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
+}

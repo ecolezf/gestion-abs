@@ -44,7 +44,9 @@ interface LayoutProps {
 }
 
 interface SchoolSettings {
-  school_name: string;
+  school_name: string | null;
+  school_name_ar: string | null;
+  school_name_en: string | null;
   logo_url: string | null;
 }
 
@@ -69,7 +71,9 @@ export function Layout({
     const loadSchoolSettings = async () => {
       const { data, error } = await supabase
         .from('school_settings')
-        .select('school_name, logo_url')
+        .select(
+          'school_name, school_name_ar, school_name_en, logo_url'
+        )
         .eq('singleton_key', 'school')
         .maybeSingle();
 
@@ -84,8 +88,39 @@ export function Layout({
       if (data) {
         const settings = data as SchoolSettings;
 
-        setSchoolName(settings.school_name || '');
+        /*
+         * Choisir le nom selon la langue de l'interface
+         *
+         * Français  -> school_name
+         * Arabe     -> school_name_ar
+         * Anglais   -> school_name_en
+         *
+         * Si une traduction n'existe pas,
+         * on utilise automatiquement school_name.
+         */
+        let translatedName = settings.school_name || '';
 
+        if (lang === 'ar') {
+          translatedName =
+            settings.school_name_ar ||
+            settings.school_name ||
+            '';
+        } else if (lang === 'en') {
+          translatedName =
+            settings.school_name_en ||
+            settings.school_name ||
+            '';
+        } else {
+          translatedName =
+            settings.school_name ||
+            '';
+        }
+
+        setSchoolName(translatedName);
+
+        /*
+         * Logo
+         */
         if (settings.logo_url) {
           setLogoUrl(
             `${settings.logo_url}?v=${Date.now()}`
@@ -97,7 +132,7 @@ export function Layout({
     };
 
     loadSchoolSettings();
-  }, []);
+  }, [lang]);
 
   const navItems: NavItem[] = isDirector
     ? [
@@ -203,7 +238,10 @@ export function Layout({
               {logoUrl ? (
                 <img
                   src={logoUrl}
-                  alt="Logo de l’établissement"
+                  alt={
+                    schoolName ||
+                    'Logo de l’établissement'
+                  }
                   className="w-full h-full object-contain p-1"
                   onError={(e) => {
                     console.error(
@@ -221,11 +259,22 @@ export function Layout({
 
             {/* Nom établissement */}
             <div className="min-w-0">
-              <h1 className="font-bold text-slate-800 text-sm leading-tight truncate">
+              <h1
+                className={`font-bold text-slate-800 text-sm leading-tight ${
+                  lang === 'ar' ? 'text-right' : ''
+                }`}
+                dir={lang === 'ar' ? 'rtl' : 'ltr'}
+                title={schoolName || t('appName')}
+              >
                 {schoolName || t('appName')}
               </h1>
 
-              <p className="text-xs text-slate-400 truncate">
+              <p
+                className={`text-xs text-slate-400 truncate ${
+                  lang === 'ar' ? 'text-right' : ''
+                }`}
+                dir={lang === 'ar' ? 'rtl' : 'ltr'}
+              >
                 {t('appTagline')}
               </p>
             </div>
@@ -273,7 +322,9 @@ export function Layout({
               </p>
 
               <p className="text-xs text-slate-400">
-                {isDirector ? t('director') : t('teacher')}
+                {isDirector
+                  ? t('director')
+                  : t('teacher')}
 
                 {profile?.subject &&
                   !isDirector &&

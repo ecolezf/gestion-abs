@@ -4,6 +4,7 @@ import { useAuth } from '@/context/AuthContext';
 import { AuthProvider } from '@/context/AuthContext';
 import { I18nProvider } from '@/i18n/I18nContext';
 import { ToastProvider } from '@/components/Toast';
+import { ThemeProvider, useTheme } from '@/context/ThemeContext';
 
 import { AuthPage } from '@/pages/AuthPage';
 import { Layout, type PageKey } from '@/components/Layout';
@@ -19,6 +20,57 @@ import { AllAttendancePage } from '@/pages/AllAttendancePage';
 import { ReportsPage } from '@/pages/ReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 
+import { Moon, Sun } from 'lucide-react';
+
+function ThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+
+  return (
+    <button
+      type="button"
+      onClick={toggleTheme}
+      aria-label={
+        theme === 'light'
+          ? 'Activer le mode nuit'
+          : 'Activer le mode clair'
+      }
+      title={
+        theme === 'light'
+          ? 'Mode nuit'
+          : 'Mode clair'
+      }
+      className="
+  fixed
+  top-4
+  end-1
+  z-[9999]
+  w-10
+  h-10
+  rounded-full
+  flex
+  items-center
+  justify-center
+  bg-slate-800
+  dark:bg-white
+  text-white
+  dark:text-slate-800
+  border
+  border-slate-700
+  dark:border-slate-200
+  shadow-lg
+  hover:scale-105
+  transition-all
+"
+    >
+      {theme === 'light' ? (
+        <Moon className="w-5 h-5" />
+      ) : (
+        <Sun className="w-5 h-5" />
+      )}
+    </button>
+  );
+}
+
 function AppContent() {
   const { session, profile, loading } = useAuth();
 
@@ -27,10 +79,11 @@ function AppContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+      <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-slate-950">
         <div className="flex flex-col items-center gap-3">
           <div className="w-10 h-10 border-4 border-teal-500 border-t-transparent rounded-full animate-spin" />
-          <p className="text-sm text-slate-400">
+
+          <p className="text-sm text-slate-400 dark:text-slate-500">
             Loading...
           </p>
         </div>
@@ -127,11 +180,15 @@ function AppContent() {
 function App() {
   return (
     <I18nProvider>
-      <ToastProvider>
-        <AuthProvider>
-          <AppContent />
-        </AuthProvider>
-      </ToastProvider>
+      <ThemeProvider>
+        <ToastProvider>
+          <AuthProvider>
+            <ThemeToggle />
+
+            <AppContent />
+          </AuthProvider>
+        </ToastProvider>
+      </ThemeProvider>
     </I18nProvider>
   );
 }

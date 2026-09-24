@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 
 export function AuthPage() {
-  const { t, dir } = useI18n();
+ 
   const { signIn } = useAuth();
   const { showToast } = useToast();
 
@@ -49,6 +49,7 @@ export function AuthPage() {
   const [adminEmail, setAdminEmail] = useState('');
   const [adminPassword, setAdminPassword] = useState('');
   const [confirmAdminPassword, setConfirmAdminPassword] = useState('');
+  const { t, lang, dir } = useI18n();
 
   // -------------------------------------------------------
   // Vérifier si l'application est encore en première
@@ -83,11 +84,14 @@ export function AuthPage() {
 
     checkInitialSetup();
   }, []);
+  
 useEffect(() => {
   const loadSchoolSettings = async () => {
     const { data, error } = await supabase
       .from('school_settings')
-      .select('school_name, logo_url')
+      .select(
+        'school_name, school_name_ar, school_name_en, logo_url'
+      )
       .eq('singleton_key', 'school')
       .maybeSingle();
 
@@ -100,12 +104,24 @@ useEffect(() => {
     }
 
     if (data) {
-      setSchoolName(data.school_name || '');
+      let translatedSchoolName = data.school_name || '';
+
+      if (lang === 'ar') {
+        translatedSchoolName =
+          data.school_name_ar ||
+          data.school_name ||
+          '';
+      } else if (lang === 'en') {
+        translatedSchoolName =
+          data.school_name_en ||
+          data.school_name ||
+          '';
+      }
+
+      setSchoolName(translatedSchoolName);
 
       if (data.logo_url) {
-        setLogoUrl(
-          `${data.logo_url}?v=${Date.now()}`
-        );
+        setLogoUrl(`${data.logo_url}?v=${Date.now()}`);
       } else {
         setLogoUrl(null);
       }
@@ -113,7 +129,7 @@ useEffect(() => {
   };
 
   loadSchoolSettings();
-}, []);
+}, [lang]);
   // -------------------------------------------------------
   // Connexion
   // -------------------------------------------------------
@@ -349,7 +365,7 @@ useEffect(() => {
           </div>
         </div>
 
-        <div className="relative z-10">
+        <div className="relative z-20 -translate-y-20">
           <LanguageSwitcher />
         </div>
       </div>

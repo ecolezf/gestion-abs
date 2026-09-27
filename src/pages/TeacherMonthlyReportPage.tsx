@@ -1466,10 +1466,10 @@ export function TeacherMonthlyReportPage() {
                   <th
                     key={day.date}
                     className={`w-10 min-w-[40px] px-1 py-2 text-center border-r ${
-                      day.outsideSchoolYear
-                        ? 'bg-slate-100 text-slate-400 border-slate-300'
-                        : day.holiday
-                          ? 'bg-amber-200 text-amber-900 border-amber-300'
+                      day.holiday
+                        ? 'bg-amber-200 text-amber-900 border-amber-300'
+                        : day.outsideSchoolYear
+                          ? 'bg-slate-100 text-slate-400 border-slate-300'
                           : day.isWeekend
                             ? 'bg-slate-300 text-slate-600 border-slate-400'
                             : day.isSchoolYearStart
@@ -1477,13 +1477,13 @@ export function TeacherMonthlyReportPage() {
                               : 'bg-slate-700 text-white border-slate-600'
                     }`}
                     title={
-                      day.outsideSchoolYear
-                        ? t('outsideSchoolYear')
-                        : day.holiday
-                          ? getHolidayName(
-                              day.holiday,
-                              lang
-                            )
+                      day.holiday
+                        ? getHolidayName(
+                            day.holiday,
+                            lang
+                          )
+                        : day.outsideSchoolYear
+                          ? t('outsideSchoolYear')
                           : day.isWeekend
                             ? t('weekend')
                             : day.isSchoolYearStart
@@ -1495,19 +1495,19 @@ export function TeacherMonthlyReportPage() {
                       {day.day}
                     </div>
 
-                    {!day.outsideSchoolYear && day.holiday && (
+                    {day.holiday && (
                       <div className="text-[8px] font-normal mt-0.5 leading-none">
                         {t('holidayShort')}
                       </div>
                     )}
 
-                    {!day.outsideSchoolYear && !day.holiday && day.isWeekend && (
+                    {!day.holiday && !day.outsideSchoolYear && day.isWeekend && (
                       <div className="text-[8px] font-normal mt-0.5">
                         {t('weekend')}
                       </div>
                     )}
 
-                    {!day.outsideSchoolYear && !day.holiday && !day.isWeekend && day.isSchoolYearStart && (
+                    {!day.holiday && !day.outsideSchoolYear && !day.isWeekend && day.isSchoolYearStart && (
                       <div className="text-[8px] font-normal mt-0.5 leading-none">
                         {getBackToSchoolShortLabel(lang)}
                       </div>
@@ -1581,32 +1581,30 @@ export function TeacherMonthlyReportPage() {
                         const status =
                           record?.status;
 
-                        if (day.outsideSchoolYear) {
-                          return (
-                            <td
-                              key={day.date}
-                              className="w-10 min-w-[40px] h-10 bg-slate-100 border-r border-b border-slate-300 text-center"
-                              title={`${t('outsideSchoolYear')}${schoolYearStart ? ` — ${getSchoolYearStartLabel(lang)}: ${formatSchoolDate(schoolYearStart, lang)}` : ''}`}
-                            >
-                            </td>
-                          );
-                        }
-
                         if (day.holiday) {
                           return (
                             <td
-                              key={
-                                day.date
-                              }
-                              className="w-10 min-w-[40px] h-10 bg-amber-100 border-r border-b border-amber-200 text-center"
+                              key={day.date}
+                              className="w-10 min-w-[40px] h-10 bg-amber-100 border-r border-b border-amber-200 text-center align-middle"
                               title={`${getHolidayName(
                                 day.holiday,
                                 lang
                               )} (${day.holiday.start_date} → ${day.holiday.end_date})`}
                             >
-                              <span className="text-amber-700 font-bold text-[9px]">
+                              <span className="text-amber-700 font-bold text-[9px] leading-none">
                                 {t('holidayShort')}
                               </span>
+                            </td>
+                          );
+                        }
+
+                        if (day.outsideSchoolYear) {
+                          return (
+                            <td
+                              key={day.date}
+                              className="w-10 min-w-[40px] h-10 bg-slate-100 border-r border-b border-slate-300 text-center align-middle"
+                              title={`${t('outsideSchoolYear')}${schoolYearStart ? ` — ${getSchoolYearStartLabel(lang)}: ${formatSchoolDate(schoolYearStart, lang)}` : ''}`}
+                            >
                             </td>
                           );
                         }
@@ -2197,11 +2195,11 @@ export function TeacherMonthlyReportPage() {
                                 ? t('weekend')
                                 : ''
                           }
-                          className={`border p-0.5 text-center w-[22px] ${
-                            day.outsideSchoolYear
-                              ? 'bg-slate-100 text-slate-400'
-                              : day.holiday
-                                ? 'bg-amber-200 text-amber-900'
+                          className={`border p-0.5 text-center align-middle w-[22px] ${
+                            day.holiday
+                              ? 'bg-amber-200 text-amber-900'
+                              : day.outsideSchoolYear
+                                ? 'bg-slate-100 text-slate-400'
                                 : day.isWeekend
                                   ? 'bg-slate-300 text-slate-700'
                                   : day.isSchoolYearStart
@@ -2210,12 +2208,12 @@ export function TeacherMonthlyReportPage() {
                           }`}
                         >
                           <div>{day.day}</div>
-                          {!day.outsideSchoolYear && (day.holiday || day.isWeekend) && (
+                          {(day.holiday || (!day.outsideSchoolYear && day.isWeekend)) && (
                             <div className="text-[5px] leading-none">
                               {day.holiday ? t('holidayShort') : t('weekend')}
                             </div>
                           )}
-                          {!day.outsideSchoolYear && !day.holiday && !day.isWeekend && day.isSchoolYearStart && (
+                          {!day.holiday && !day.outsideSchoolYear && !day.isWeekend && day.isSchoolYearStart && (
                             <div className="text-[5px] leading-none">
                               {getBackToSchoolShortLabel(lang)}
                             </div>
@@ -2241,11 +2239,11 @@ export function TeacherMonthlyReportPage() {
                           return (
                             <td
                               key={day.date}
-                              className={`border text-center p-0 ${
-                                day.outsideSchoolYear
-                                  ? 'bg-slate-100 text-slate-400 font-bold'
-                                  : day.holiday
-                                    ? 'bg-amber-100 text-amber-700 font-bold'
+                              className={`border text-center align-middle p-0 leading-none ${
+                                day.holiday
+                                  ? 'bg-amber-100 text-amber-700 font-bold'
+                                  : day.outsideSchoolYear
+                                    ? 'bg-slate-100 text-slate-400 font-bold'
                                     : day.isWeekend
                                       ? 'bg-slate-200 text-slate-400'
                                       : day.isSchoolYearStart
@@ -2253,10 +2251,10 @@ export function TeacherMonthlyReportPage() {
                                         : ''
                               }`}
                             >
-                              {day.outsideSchoolYear
-                                ? ''
-                                : day.holiday
-                                  ? t('holidayShort')
+                              {day.holiday
+                                ? t('holidayShort')
+                                : day.outsideSchoolYear
+                                  ? ''
                                   : day.isWeekend
                                     ? '•'
                                     : getStatusLabel(status)}

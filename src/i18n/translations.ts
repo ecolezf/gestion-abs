@@ -335,6 +335,7 @@ type TranslationKey =
   | 'reportsList'
   | 'dailyAttendance'
   | 'monthlyReport'
+  | 'reportPreview'
   | 'customReport'
   | 'printReport'
   | 'exportPdf'
@@ -386,6 +387,33 @@ type TranslationKey =
   | 'daysAbsent'
   | 'daysLate'
   | 'totalRecords'
+  | 'schoolHolidays'
+  | 'schoolHolidaysDescription'
+  | 'schoolHoliday'
+  | 'holidayShort'
+  | 'schoolHolidaysThisMonth'
+  | 'addHoliday'
+  | 'noSchoolHolidays'
+  | 'holidayPeriod'
+  | 'holidayNameFr'
+  | 'holidayNameAr'
+  | 'holidayNameEn'
+  | 'holidayStartDate'
+  | 'holidayEndDate'
+  | 'saveSchoolHolidays'
+  | 'schoolHolidaysSaved'
+  | 'schoolHolidaysSaveError'
+  | 'schoolHolidaysLoadError'
+  | 'schoolHolidayRequired'
+  | 'schoolHolidayInvalidDates'
+  | 'schoolHolidayDeleted'
+  | 'schoolHolidayDeleteError'
+  | 'schoolYearStart'
+  | 'schoolYearEnd'
+  | 'outsideSchoolYear'
+  | 'outsideSchoolYearShort'
+  | 'backToSchoolShort'
+  | 'winterBreak'
   | 'schoolYear'
   | 'semester'
   | 'quarter'
@@ -811,6 +839,7 @@ export const translations: Record<Language, TranslationDict> = {
     reportsList: 'Liste des rapports',
     dailyAttendance: 'Présence journalière',
     monthlyReport: 'Rapport mensuel',
+    reportPreview: 'Aperçu du rapport',
     customReport: 'Rapport personnalisé',
     printReport: 'Imprimer le rapport',
     exportPdf: 'Exporter PDF',
@@ -863,6 +892,33 @@ export const translations: Record<Language, TranslationDict> = {
     daysLate: 'Jours en retard',
     totalRecords: 'Total enregistrements',
     schoolYear: 'Année scolaire',
+    schoolHolidays: 'Vacances scolaires',
+    schoolHolidaysDescription: 'Définissez les périodes de vacances de l’année scolaire.',
+    schoolHoliday: 'Vacances scolaires',
+    holidayShort: 'V',
+    schoolHolidaysThisMonth: 'Vacances scolaires du mois',
+    addHoliday: 'Ajouter une période',
+    noSchoolHolidays: 'Aucune période de vacances.',
+    holidayPeriod: 'Période',
+    holidayNameFr: 'Nom en français',
+    holidayNameAr: 'Nom en arabe',
+    holidayNameEn: 'Nom en anglais',
+    holidayStartDate: 'Date de début',
+    holidayEndDate: 'Date de fin',
+    saveSchoolHolidays: 'Enregistrer les vacances',
+    schoolHolidaysSaved: 'Vacances scolaires enregistrées',
+    schoolHolidaysSaveError: 'Impossible d’enregistrer les vacances scolaires.',
+    schoolHolidaysLoadError: 'Impossible de charger les vacances scolaires.',
+    schoolHolidayRequired: 'Pour chaque période, renseignez le nom en français, la date de début et la date de fin.',
+    schoolHolidayInvalidDates: 'La date de début doit être antérieure ou égale à la date de fin.',
+    schoolHolidayDeleted: 'Période de vacances supprimée',
+    schoolHolidayDeleteError: 'Impossible de supprimer cette période de vacances.',
+    winterBreak: 'Vacances d\'hiver',
+    schoolYearStart: 'Date de rentrée scolaire',
+    schoolYearEnd: 'Fin de l’année scolaire',
+    outsideSchoolYear: 'Hors année scolaire',
+    outsideSchoolYearShort: 'H.A.',
+    backToSchoolShort: 'R',
     semester: 'Semestre',
     quarter: 'Trimestre',
     term: 'Période',
@@ -1288,6 +1344,7 @@ export const translations: Record<Language, TranslationDict> = {
     reportsList: 'قائمة التقارير',
     dailyAttendance: 'الحضور اليومي',
     monthlyReport: 'تقرير شهري',
+    reportPreview: 'معاينة التقرير',
     customReport: 'تقرير مخصص',
     printReport: 'طباعة التقرير',
     exportPdf: 'تصدير PDF',
@@ -1340,6 +1397,33 @@ export const translations: Record<Language, TranslationDict> = {
     daysLate: 'أيام التأخر',
     totalRecords: 'مجموع السجلات',
     schoolYear: 'السنة الدراسية',
+    schoolHolidays: 'العطل المدرسية',
+    schoolHolidaysDescription: 'حدد فترات العطل للسنة الدراسية.',
+    schoolHoliday: 'العطل المدرسية',
+    holidayShort: 'عطلة',
+    schoolHolidaysThisMonth: 'العطل المدرسية لهذا الشهر',
+    addHoliday: 'إضافة فترة',
+    noSchoolHolidays: 'لا توجد فترات عطلة.',
+    holidayPeriod: 'الفترة',
+    holidayNameFr: 'الاسم بالفرنسية',
+    holidayNameAr: 'الاسم بالعربية',
+    holidayNameEn: 'الاسم بالإنجليزية',
+    holidayStartDate: 'تاريخ البداية',
+    holidayEndDate: 'تاريخ النهاية',
+    saveSchoolHolidays: 'حفظ العطل',
+    schoolHolidaysSaved: 'تم حفظ العطل المدرسية',
+    schoolHolidaysSaveError: 'تعذر حفظ العطل المدرسية.',
+    schoolHolidaysLoadError: 'تعذر تحميل العطل المدرسية.',
+    schoolHolidayRequired: 'يرجى إدخال الاسم بالفرنسية وتاريخ البداية وتاريخ النهاية لكل فترة.',
+    schoolHolidayInvalidDates: 'يجب أن يكون تاريخ البداية قبل تاريخ النهاية أو مساوياً له.',
+    schoolHolidayDeleted: 'تم حذف فترة العطلة',
+    schoolHolidayDeleteError: 'تعذر حذف فترة العطلة.',
+    winterBreak: 'عطلة الشتاء',
+    schoolYearStart: 'تاريخ الدخول المدرسي',
+    schoolYearEnd: 'نهاية السنة الدراسية',
+    outsideSchoolYear: 'خارج السنة الدراسية',
+    outsideSchoolYearShort: 'خ.د',
+    backToSchoolShort: 'د',
     semester: 'الفصل',
     quarter: 'الثلاثي',
     term: 'الدورة',
@@ -1764,6 +1848,7 @@ export const translations: Record<Language, TranslationDict> = {
     reportsList: 'Reports List',
     dailyAttendance: 'Daily Attendance',
     monthlyReport: 'Monthly Report',
+    reportPreview: 'Report Preview',
     customReport: 'Custom Report',
     printReport: 'Print Report',
     exportPdf: 'Export PDF',
@@ -1816,6 +1901,33 @@ export const translations: Record<Language, TranslationDict> = {
     daysLate: 'Days late',
     totalRecords: 'Total records',
     schoolYear: 'School year',
+    schoolHolidays: 'School Holidays',
+    schoolHolidaysDescription: 'Define the school holiday periods for the school year.',
+    schoolHoliday: 'School holidays',
+    holidayShort: 'H',
+    schoolHolidaysThisMonth: 'School holidays this month',
+    addHoliday: 'Add period',
+    noSchoolHolidays: 'No holiday periods.',
+    holidayPeriod: 'Period',
+    holidayNameFr: 'Name in French',
+    holidayNameAr: 'Name in Arabic',
+    holidayNameEn: 'Name in English',
+    holidayStartDate: 'Start date',
+    holidayEndDate: 'End date',
+    saveSchoolHolidays: 'Save holidays',
+    schoolHolidaysSaved: 'School holidays saved',
+    schoolHolidaysSaveError: 'Unable to save school holidays.',
+    schoolHolidaysLoadError: 'Unable to load school holidays.',
+    schoolHolidayRequired: 'For each period, enter the French name, start date, and end date.',
+    schoolHolidayInvalidDates: 'The start date must be before or equal to the end date.',
+    schoolHolidayDeleted: 'Holiday period deleted',
+    schoolHolidayDeleteError: 'Unable to delete this holiday period.',
+    winterBreak: 'Winter break',
+    schoolYearStart: 'School start date',
+    schoolYearEnd: 'End of school year',
+    outsideSchoolYear: 'Outside school year',
+    outsideSchoolYearShort: 'O.S.Y.',
+    backToSchoolShort: 'Start',
     semester: 'Semester',
     quarter: 'Quarter',
     term: 'Term',

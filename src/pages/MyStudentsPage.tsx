@@ -285,16 +285,68 @@ export function MyStudentsPage() {
 
   function exportStudents() {
     if (students.length === 0) return;
-    const data = students.map((s, i) => ({
-      '#': i + 1,
-      first_name: s.first_name_fr,
-      last_name: s.last_name_fr,
-      student_number: s.student_number || '',
-    }));
+
+    const data = students.map((s, i) => {
+      const firstName =
+        lang === 'ar'
+          ? s.first_name_ar
+          : lang === 'en'
+            ? s.first_name_en
+            : s.first_name_fr;
+
+      const lastName =
+        lang === 'ar'
+          ? s.last_name_ar
+          : lang === 'en'
+            ? s.last_name_en
+            : s.last_name_fr;
+
+      return {
+        '#': i + 1,
+        [lang === 'ar'
+          ? 'الاسم'
+          : lang === 'en'
+            ? 'First Name'
+            : 'Prénom']: firstName || '',
+        [lang === 'ar'
+          ? 'اللقب'
+          : lang === 'en'
+            ? 'Last Name'
+            : 'Nom']: lastName || '',
+        [lang === 'ar'
+          ? 'رقم التلميذ'
+          : lang === 'en'
+            ? 'Student Number'
+            : 'Numéro d’élève']: s.student_number || '',
+      };
+    });
+
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Students');
-    XLSX.writeFile(wb, `students_${new Date().toISOString().split('T')[0]}.xlsx`);
+
+    // En arabe, Excel doit afficher la feuille de droite à gauche.
+    wb.Workbook = {
+      Views: [{ RTL: lang === 'ar' }],
+    };
+
+    XLSX.utils.book_append_sheet(
+      wb,
+      ws,
+      lang === 'ar'
+        ? 'التلاميذ'
+        : lang === 'en'
+          ? 'Students'
+          : 'Élèves'
+    );
+
+    XLSX.writeFile(
+      wb,
+      lang === 'ar'
+        ? 'التلاميذ.xlsx'
+        : lang === 'en'
+          ? 'students.xlsx'
+          : 'eleves.xlsx'
+    );
   }
 
   const filteredStudents = students.filter((s) => {

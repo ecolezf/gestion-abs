@@ -21,6 +21,7 @@ import { ReportsPage } from '@/pages/ReportsPage';
 import { SettingsPage } from '@/pages/SettingsPage';
 
 import { Moon, Sun } from 'lucide-react';
+import { TeacherMonthlyReportPage } from '@/pages/TeacherMonthlyReportPage';
 
 function ThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -143,6 +144,12 @@ function AppContent() {
         ) : (
           <TeacherDashboard onNavigate={handleNavigate} />
         );
+        case 'teacherMonthlyReport':
+          return isDirector ? (
+            <ReportsPage />
+          ) : (
+            <TeacherMonthlyReportPage />
+          );
 
       case 'reports':
         return isDirector ? (

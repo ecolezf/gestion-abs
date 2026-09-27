@@ -4,6 +4,7 @@ import { useI18n } from '@/i18n/I18nContext';
 import { getProfileName } from '@/lib/helpers';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { supabase } from '@/lib/supabase';
+import { ChangePasswordModal } from '@/components/ChangePasswordModal';
 
 import {
   GraduationCap,
@@ -18,12 +19,15 @@ import {
   Menu,
   X,
   Settings,
+  FileText,
+  KeyRound,
 } from 'lucide-react';
 
 export type PageKey =
   | 'dashboard'
   | 'myClass'
   | 'attendance'
+  | 'teacherMonthlyReport'
   | 'levels'
   | 'classes'
   | 'teachers'
@@ -61,6 +65,7 @@ export function Layout({
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [schoolName, setSchoolName] = useState('');
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
+  const [showChangePassword, setShowChangePassword] = useState(false);
 
   const isDirector = profile?.role === 'director';
 
@@ -187,6 +192,11 @@ export function Layout({
           key: 'attendance',
           label: t('attendance'),
           icon: <CalendarCheck className="w-5 h-5" />,
+        },
+        {
+          key: 'teacherMonthlyReport',
+          label: t('monthlyReport'),
+          icon: <FileText className="w-5 h-5" />,
         },
       ];
 
@@ -337,6 +347,14 @@ export function Layout({
             </div>
 
             <button
+              onClick={() => setShowChangePassword(true)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-teal-600 hover:bg-teal-50 transition-colors"
+              title={t('changePassword')}
+            >
+              <KeyRound className="w-4 h-4" />
+            </button>
+
+            <button
               onClick={handleSignOut}
               className="p-1.5 rounded-lg text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-colors"
               title={t('signOut')}
@@ -375,6 +393,12 @@ export function Layout({
           {children}
         </main>
       </div>
+
+      <ChangePasswordModal
+        open={showChangePassword}
+        onClose={() => setShowChangePassword(false)}
+        email={profile?.email || ''}
+      />
     </div>
   );
 }

@@ -72,3 +72,6 @@ export interface AttendanceRecord {
   note: string | null;
   created_at: string;
 }
+
+
+

@@ -3,25 +3,56 @@ import { useAuth } from '@/context/AuthContext';
 import { useI18n } from '@/i18n/I18nContext';
 import { useToast } from '@/components/Toast';
 import { supabase } from '@/lib/supabase';
-import { getStudentName, getClassName, todayString, isWeekend, formatDate } from '@/lib/helpers';
+import {
+  getStudentName,
+  getClassName,
+  todayString,
+  isWeekend,
+  formatDate,
+} from '@/lib/helpers';
 import { Button } from '@/components/Button';
 import { Input } from '@/components/Input';
-import type { ClassRoom, Student, AttendanceRecord, AttendanceStatus } from '@/types/database';
+import type {
+  ClassRoom,
+  Student,
+  AttendanceRecord,
+  AttendanceStatus,
+} from '@/types/database';
 import {
-  CalendarCheck, CheckCircle, XCircle, Clock, Save, CheckCheck, AlertCircle, ChevronLeft, ChevronRight,
+  CalendarCheck,
+  CheckCircle,
+  XCircle,
+  Clock,
+  Save,
+  CheckCheck,
+  AlertCircle,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 export function AttendancePage() {
   const { profile } = useAuth();
   const { t, lang, dir } = useI18n();
   const { showToast } = useToast();
+
   const [myClasses, setMyClasses] = useState<ClassRoom[]>([]);
   const [selectedClass, setSelectedClass] = useState<ClassRoom | null>(null);
   const [students, setStudents] = useState<Student[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedDate, setSelectedDate] = useState(todayString());
-  const [attendance, setAttendance] = useState<Record<string, AttendanceStatus>>({});
-  const [existingRecords, setExistingRecords] = useState<Record<string, AttendanceRecord>>({});
+
+  const [attendance, setAttendance] = useState<
+    Record<string, AttendanceStatus>
+  >({});
+
+  const [observations, setObservations] = useState<Record<string, string>>(
+    {}
+  );
+
+  const [existingRecords, setExistingRecords] = useState<
+    Record<string, AttendanceRecord>
+  >({});
+
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -30,6 +61,7 @@ export function AttendancePage() {
 
   async function loadClasses() {
     if (!profile) return;
+
     setLoading(true);
 
     const { data: ctData } = await supabase
@@ -44,17 +76,21 @@ export function AttendancePage() {
     }
 
     const classIds = ctData.map((ct: any) => ct.class_id);
-      const { data: classesData } = await supabase
+
+    const { data: classesData } = await supabase
       .from('classes')
       .select('*')
       .in('id', classIds)
       .order('created_at');
 
     const classes = (classesData || []) as ClassRoom[];
+
     setMyClasses(classes);
+
     if (classes.length > 0) {
       setSelectedClass(classes[0]);
     }
+
     setLoading(false);
   }
 
@@ -72,7 +108,8 @@ export function AttendancePage() {
       .select('*')
       .eq('class_id', selectedClass.id)
       .order('created_at');
-    setStudents(studs as Student[] || []);
+
+    setStudents((studs || []) as Student[]);
 
     const { data } = await supabase
       .from('attendance')
@@ -82,75 +119,142 @@ export function AttendancePage() {
 
     const records: Record<string, AttendanceRecord> = {};
     const statuses: Record<string, AttendanceStatus> = {};
-    (data as AttendanceRecord[] || []).forEach((r) => {
-      records[r.student_id] = r;
-      statuses[r.student_id] = r.status;
+    const notes: Record<string, string> = {};
+
+    ((data || []) as AttendanceRecord[]).forEach((record) => {
+      records[record.student_id] = record;
+      statuses[record.student_id] = record.status;
+      notes[record.student_id] = record.note || '';
     });
+
     setExistingRecords(records);
     setAttendance(statuses);
+    setObservations(notes);
   }
 
-  function setStatus(studentId: string, status: AttendanceStatus) {
-    setAttendance((prev) => ({ ...prev, [studentId]: status }));
+  function setStatus(
+    studentId: string,
+    status: AttendanceStatus
+  ) {
+    setAttendance((prev) => ({
+      ...prev,
+      [studentId]: status,
+    }));
+
+    // Si l'élève est présent, on supprime automatiquement le motif.
+    if (status === 'present') {
+      setObservations((prev) => ({
+        ...prev,
+        [studentId]: '',
+      }));
+    }
+  }
+
+  function setObservation(studentId: string, value: string) {
+    setObservations((prev) => ({
+      ...prev,
+      [studentId]: value,
+    }));
   }
 
   function markAllPresent() {
     const all: Record<string, AttendanceStatus> = {};
-    students.forEach((s) => { all[s.id] = 'present'; });
+    const emptyObservations: Record<string, string> = {};
+
+    students.forEach((student) => {
+      all[student.id] = 'present';
+      emptyObservations[student.id] = '';
+    });
+
     setAttendance(all);
+    setObservations(emptyObservations);
   }
 
   async function saveAttendance() {
     if (!selectedClass) return;
+
     setSaving(true);
 
     const date = new Date(selectedDate);
+
     if (isWeekend(date)) {
       showToast(t('weekend'), 'warning');
       setSaving(false);
       return;
     }
 
-    const upserts = students.map((s) => {
-      const status = attendance[s.id];
-      if (!status) return null;
-      const existing = existingRecords[s.id];
-      if (existing) {
-        return supabase.from('attendance').update({ status }).eq('id', existing.id);
-      } else {
+    const upserts = students
+      .map((student) => {
+        const status = attendance[student.id];
+
+        if (!status) {
+          return null;
+        }
+
+        const existing = existingRecords[student.id];
+
+        // On garde l'observation uniquement pour absent ou retard.
+        const note =
+          status === 'absent' || status === 'late'
+            ? (observations[student.id] || '').trim() || null
+            : null;
+
+        if (existing) {
+          return supabase
+            .from('attendance')
+            .update({
+              status,
+              note,
+            })
+            .eq('id', existing.id);
+        }
+
         return supabase.from('attendance').insert({
-          student_id: s.id,
+          student_id: student.id,
           class_id: selectedClass.id,
           date: selectedDate,
           status,
+          note,
         });
-      }
-    }).filter(Boolean);
+      })
+      .filter(Boolean);
 
     const results = await Promise.all(upserts as any[]);
-    const hasError = results.some((r) => r.error);
+
+    const hasError = results.some((result) => result.error);
 
     if (hasError) {
       showToast(t('errorOccurred'), 'error');
     } else {
       showToast(t('attendanceSaved'), 'success');
-      loadStudentsAndAttendance();
+      await loadStudentsAndAttendance();
     }
+
     setSaving(false);
   }
 
   function changeDate(days: number) {
     const d = new Date(selectedDate);
+
     d.setDate(d.getDate() + days);
+
     setSelectedDate(d.toISOString().split('T')[0]);
   }
 
   const dateObj = new Date(selectedDate);
   const isWeekendDay = isWeekend(dateObj);
 
-  const presentCount = Object.values(attendance).filter((s) => s === 'present').length;
-  const absentCount = Object.values(attendance).filter((s) => s === 'absent').length;
-  const lateCount = Object.values(attendance).filter((s) => s === 'late').length;
+  const presentCount = Object.values(attendance).filter(
+    (status) => status === 'present'
+  ).length;
+
+  const absentCount = Object.values(attendance).filter(
+    (status) => status === 'absent'
+  ).length;
+
+  const lateCount = Object.values(attendance).filter(
+    (status) => status === 'late'
+  ).length;
 
   if (loading) {
     return (
@@ -166,7 +270,10 @@ export function AttendancePage() {
         <div className="w-16 h-16 rounded-2xl bg-amber-50 flex items-center justify-center mx-auto mb-4">
           <AlertCircle className="w-8 h-8 text-amber-500" />
         </div>
-        <h3 className="text-lg font-semibold text-slate-800 mb-2">{t('noClassAssigned')}</h3>
+
+        <h3 className="text-lg font-semibold text-slate-800 mb-2">
+          {t('noClassAssigned')}
+        </h3>
       </div>
     );
   }
@@ -176,7 +283,10 @@ export function AttendancePage() {
       <div className="space-y-6">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-800">{t('attendance')}</h1>
+            <h1 className="text-2xl font-bold text-slate-800">
+              {t('attendance')}
+            </h1>
+
             {myClasses.length > 1 && (
               <div className="flex flex-wrap gap-2 mt-2">
                 {myClasses.map((cls) => (
@@ -194,23 +304,52 @@ export function AttendancePage() {
                 ))}
               </div>
             )}
-            {selectedClass && <p className="text-sm text-slate-500 mt-1">{getClassName(selectedClass, lang)}</p>}
+
+            {selectedClass && (
+              <p className="text-sm text-slate-500 mt-1">
+                {getClassName(selectedClass, lang)}
+              </p>
+            )}
           </div>
         </div>
+
         <div className="text-center py-16 bg-white rounded-2xl border border-slate-100">
           <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto mb-4">
             <CalendarCheck className="w-8 h-8 text-slate-300" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-800 mb-2">{t('noStudents')}</h3>
+
+          <h3 className="text-lg font-semibold text-slate-800 mb-2">
+            {t('noStudents')}
+          </h3>
         </div>
       </div>
     );
   }
 
-  const statusButtons: { status: AttendanceStatus; label: string; icon: React.ReactNode; classes: string }[] = [
-    { status: 'present', label: t('present'), icon: <CheckCircle className="w-4 h-4" />, classes: 'bg-emerald-500 text-white border-emerald-500' },
-    { status: 'absent', label: t('absent'), icon: <XCircle className="w-4 h-4" />, classes: 'bg-rose-500 text-white border-rose-500' },
-    { status: 'late', label: t('late'), icon: <Clock className="w-4 h-4" />, classes: 'bg-amber-500 text-white border-amber-500' },
+  const statusButtons: {
+    status: AttendanceStatus;
+    label: string;
+    icon: React.ReactNode;
+    classes: string;
+  }[] = [
+    {
+      status: 'present',
+      label: t('present'),
+      icon: <CheckCircle className="w-4 h-4" />,
+      classes: 'bg-emerald-500 text-white border-emerald-500',
+    },
+    {
+      status: 'absent',
+      label: t('absent'),
+      icon: <XCircle className="w-4 h-4" />,
+      classes: 'bg-rose-500 text-white border-rose-500',
+    },
+    {
+      status: 'late',
+      label: t('late'),
+      icon: <Clock className="w-4 h-4" />,
+      classes: 'bg-amber-500 text-white border-amber-500',
+    },
   ];
 
   return (
@@ -218,7 +357,10 @@ export function AttendancePage() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">{t('attendance')}</h1>
+          <h1 className="text-2xl font-bold text-slate-800">
+            {t('attendance')}
+          </h1>
+
           {myClasses.length > 1 && (
             <div className="flex flex-wrap gap-2 mt-2">
               {myClasses.map((cls) => (
@@ -236,8 +378,14 @@ export function AttendancePage() {
               ))}
             </div>
           )}
-          {selectedClass && myClasses.length === 1 && <p className="text-sm text-slate-500">{getClassName(selectedClass, lang)}</p>}
+
+          {selectedClass && myClasses.length === 1 && (
+            <p className="text-sm text-slate-500">
+              {getClassName(selectedClass, lang)}
+            </p>
+          )}
         </div>
+
         <Button onClick={markAllPresent} variant="outline" size="sm">
           <CheckCheck className="w-4 h-4" />
           {t('markAllPresent')}
@@ -246,9 +394,17 @@ export function AttendancePage() {
 
       {/* Date selector */}
       <div className="bg-white rounded-2xl p-4 border border-slate-100 flex items-center justify-between gap-4">
-        <button onClick={() => changeDate(-1)} className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
-          {dir === 'rtl' ? <ChevronRight className="w-5 h-5" /> : <ChevronLeft className="w-5 h-5" />}
+        <button
+          onClick={() => changeDate(-1)}
+          className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+        >
+          {dir === 'rtl' ? (
+            <ChevronRight className="w-5 h-5" />
+          ) : (
+            <ChevronLeft className="w-5 h-5" />
+          )}
         </button>
+
         <div className="flex-1 text-center">
           <Input
             type="date"
@@ -256,68 +412,175 @@ export function AttendancePage() {
             onChange={(e) => setSelectedDate(e.target.value)}
             className="text-center font-medium"
           />
+
           <p className="text-sm text-slate-500 mt-1.5">
             {formatDate(dateObj, lang)}
-            {isWeekendDay && <span className="ms-2 text-amber-600 font-medium">({t('weekend')})</span>}
+
+            {isWeekendDay && (
+              <span className="ms-2 text-amber-600 font-medium">
+                ({t('weekend')})
+              </span>
+            )}
           </p>
         </div>
-        <button onClick={() => changeDate(1)} className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors">
-          {dir === 'rtl' ? <ChevronLeft className="w-5 h-5" /> : <ChevronRight className="w-5 h-5" />}
+
+        <button
+          onClick={() => changeDate(1)}
+          className="p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
+        >
+          {dir === 'rtl' ? (
+            <ChevronLeft className="w-5 h-5" />
+          ) : (
+            <ChevronRight className="w-5 h-5" />
+          )}
         </button>
       </div>
 
+      {/* Weekend warning */}
       {isWeekendDay && (
         <div className="flex items-center gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200">
           <AlertCircle className="w-5 h-5 text-amber-500" />
-          <p className="text-sm text-amber-700">{t('weekend')}</p>
+
+          <p className="text-sm text-amber-700">
+            {t('weekend')}
+          </p>
         </div>
       )}
 
       {/* Summary */}
       <div className="grid grid-cols-3 gap-4">
         <div className="bg-white rounded-2xl p-4 border border-slate-100 text-center">
-          <p className="text-2xl font-bold text-emerald-600">{presentCount}</p>
-          <p className="text-xs text-slate-500">{t('present')}</p>
+          <p className="text-2xl font-bold text-emerald-600">
+            {presentCount}
+          </p>
+
+          <p className="text-xs text-slate-500">
+            {t('present')}
+          </p>
         </div>
+
         <div className="bg-white rounded-2xl p-4 border border-slate-100 text-center">
-          <p className="text-2xl font-bold text-rose-600">{absentCount}</p>
-          <p className="text-xs text-slate-500">{t('absent')}</p>
+          <p className="text-2xl font-bold text-rose-600">
+            {absentCount}
+          </p>
+
+          <p className="text-xs text-slate-500">
+            {t('absent')}
+          </p>
         </div>
+
         <div className="bg-white rounded-2xl p-4 border border-slate-100 text-center">
-          <p className="text-2xl font-bold text-amber-600">{lateCount}</p>
-          <p className="text-xs text-slate-500">{t('late')}</p>
+          <p className="text-2xl font-bold text-amber-600">
+            {lateCount}
+          </p>
+
+          <p className="text-xs text-slate-500">
+            {t('late')}
+          </p>
         </div>
       </div>
 
       {/* Student list */}
       <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden">
+        {/* Header du tableau */}
+        <div className="hidden md:grid md:grid-cols-[1fr_auto_1fr] gap-4 items-center px-4 py-3 bg-slate-50 border-b border-slate-100">
+          <div className="text-sm font-semibold text-slate-600">
+            {t('student') || 'Élève'}
+          </div>
+
+          <div className="text-sm font-semibold text-slate-600 text-center">
+            {t('attendance')}
+          </div>
+
+          <div className="text-sm font-semibold text-slate-600">
+            {lang === 'ar'
+              ? 'ملاحظة'
+              : lang === 'en'
+                ? 'Observation'
+                : 'Observation'}
+          </div>
+        </div>
+
         <div className="divide-y divide-slate-50">
           {students.map((student, i) => {
             const currentStatus = attendance[student.id];
+            const currentObservation = observations[student.id] || '';
+
+            const showObservation =
+              currentStatus === 'absent' ||
+              currentStatus === 'late';
+
             return (
-              <div key={student.id} className="flex items-center justify-between p-4 hover:bg-slate-50/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm text-slate-400 w-6">{i + 1}</span>
-                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-white text-xs font-bold">
-                    {getStudentName(student, lang).charAt(0)}
+              <div
+                key={student.id}
+                className="p-4 hover:bg-slate-50/50 transition-colors"
+              >
+                <div className="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 md:items-center">
+                  {/* Student */}
+                  <div className="flex items-center gap-3 min-w-0">
+                    <span className="text-sm text-slate-400 w-6">
+                      {i + 1}
+                    </span>
+
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-teal-400 to-cyan-500 flex items-center justify-center text-white text-xs font-bold shrink-0">
+                      {getStudentName(student, lang).charAt(0)}
+                    </div>
+
+                    <span className="text-sm font-medium text-slate-800 truncate">
+                      {getStudentName(student, lang)}
+                    </span>
                   </div>
-                  <span className="text-sm font-medium text-slate-800">{getStudentName(student, lang)}</span>
-                </div>
-                <div className="flex gap-1.5">
-                  {statusButtons.map((btn) => (
-                    <button
-                      key={btn.status}
-                      onClick={() => setStatus(student.id, btn.status)}
-                      className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border-2 transition-all ${
-                        currentStatus === btn.status
-                          ? btn.classes
-                          : 'border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'
-                      }`}
-                    >
-                      {btn.icon}
-                      <span className="hidden sm:inline">{btn.label}</span>
-                    </button>
-                  ))}
+
+                  {/* Status */}
+                  <div className="flex gap-1.5 md:justify-center">
+                    {statusButtons.map((btn) => (
+                      <button
+                        key={btn.status}
+                        onClick={() =>
+                          setStatus(student.id, btn.status)
+                        }
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border-2 transition-all ${
+                          currentStatus === btn.status
+                            ? btn.classes
+                            : 'border-slate-200 text-slate-400 hover:border-slate-300 hover:text-slate-600'
+                        }`}
+                      >
+                        {btn.icon}
+
+                        <span className="hidden sm:inline">
+                          {btn.label}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Observation */}
+                  <div>
+                    {showObservation ? (
+                      <Input
+                        type="text"
+                        value={currentObservation}
+                        onChange={(e) =>
+                          setObservation(
+                            student.id,
+                            e.target.value
+                          )
+                        }
+                        placeholder={
+                          lang === 'ar'
+                            ? 'سبب الغياب أو التأخر...'
+                            : lang === 'en'
+                              ? 'Reason for absence or lateness...'
+                              : 'Motif de l’absence ou du retard...'
+                        }
+                        className="w-full"
+                      />
+                    ) : (
+                      <span className="text-sm text-slate-300">
+                        —
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
             );
@@ -327,8 +590,14 @@ export function AttendancePage() {
 
       {/* Save button */}
       <div className="sticky bottom-4 flex justify-end">
-        <Button size="lg" onClick={saveAttendance} disabled={saving || isWeekendDay} className="shadow-lg">
+        <Button
+          size="lg"
+          onClick={saveAttendance}
+          disabled={saving || isWeekendDay}
+          className="shadow-lg"
+        >
           <Save className="w-5 h-5" />
+
           {saving ? t('saving') : t('saveAttendance')}
         </Button>
       </div>

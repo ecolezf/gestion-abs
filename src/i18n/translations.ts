@@ -7,6 +7,56 @@ export const languages: { code: Language; label: string; flag: string }[] = [
 ];
 
 type TranslationKey =
+  | 'settingsTitle'
+  | 'settingsDescription'
+  | 'settingsIdentity'
+  | 'settingsIdentityDescription'
+  | 'settingsSchoolName'
+  | 'settingsSchoolNamePlaceholder'
+  | 'settingsSchoolNameAr'
+  | 'settingsSchoolNameEn'
+  | 'settingsDefaultLanguage'
+  | 'settingsLogoTitle'
+  | 'settingsLogoDescription'
+  | 'settingsNoLogo'
+  | 'settingsChooseLogo'
+  | 'settingsChangeLogo'
+  | 'settingsProcessing'
+  | 'settingsLogoFormats'
+  | 'settingsLogoMaxSize'
+  | 'settingsAddressTitle'
+  | 'settingsAddressDescription'
+  | 'settingsAddress'
+  | 'settingsAddressPlaceholder'
+  | 'settingsCity'
+  | 'settingsWilaya'
+  | 'settingsCountry'
+  | 'settingsCityPlaceholder'
+  | 'settingsMapsLink'
+  | 'settingsLatitude'
+  | 'settingsLongitude'
+  | 'settingsContactTitle'
+  | 'settingsContactDescription'
+  | 'settingsPhone'
+  | 'settingsWebsite'
+  | 'settingsSchoolYearDescription'
+  | 'settingsSave'
+  | 'settingsLoadError'
+  | 'settingsNameRequired'
+  | 'settingsGpsInvalid'
+  | 'settingsSaveError'
+  | 'settingsSaved'
+  | 'settingsImageRequired'
+  | 'settingsLogoTooLarge'
+  | 'settingsLogoUploadError'
+  | 'settingsLogoUrlError'
+  | 'settingsLogoSaved'
+  | 'settingsLogoUnexpectedError'
+  | 'settingsLogoPathError'
+  | 'settingsLogoRemoveError'
+  | 'settingsLogoRemoveUrlError'
+  | 'settingsLogoRemoved'
+  | 'settingsLogoRemoveUnexpectedError'
   | 'appName'
   | 'appTagline'
   | 'signIn'
@@ -520,6 +570,57 @@ type TranslationDict = Record<TranslationKey, string>;
 
 export const translations: Record<Language, TranslationDict> = {
   fr: {
+    settingsTitle: 'Configuration de l’établissement',
+    settingsDescription: 'Configurez les informations générales de votre établissement.',
+    settingsIdentity: 'Informations générales',
+    settingsIdentityDescription: 'Nom et identité de l’établissement',
+    settingsSchoolName: 'Nom de l’établissement *',
+    settingsSchoolNamePlaceholder: 'Ex. École El Falah',
+    settingsSchoolNameAr: 'Nom en arabe',
+    settingsSchoolNameEn: 'Nom en anglais',
+    settingsDefaultLanguage: 'Langue par défaut',
+    settingsLogoTitle: 'Logo de l’établissement',
+    settingsLogoDescription: 'Le logo sera utilisé dans l’application et les futurs rapports.',
+    settingsNoLogo: 'Aucun logo',
+    settingsChooseLogo: 'Choisir un logo',
+    settingsChangeLogo: 'Changer le logo',
+    settingsProcessing: 'Traitement...',
+    settingsLogoFormats: 'Formats acceptés : PNG, JPG, WEBP ou SVG.',
+    settingsLogoMaxSize: 'Taille maximale : 5 Mo.',
+    settingsAddressTitle: 'Adresse et localisation',
+    settingsAddressDescription: 'Informations permettant de localiser l’établissement',
+    settingsAddress: 'Adresse',
+    settingsAddressPlaceholder: 'Ex. 12 rue des Écoles',
+    settingsCity: 'Ville',
+    settingsWilaya: 'Wilaya',
+    settingsCountry: 'Pays',
+    settingsCityPlaceholder: 'Ex. Alger',
+    settingsMapsLink: 'Lien Google Maps',
+    settingsLatitude: 'Latitude',
+    settingsLongitude: 'Longitude',
+    settingsContactTitle: 'Coordonnées',
+    settingsContactDescription: 'Moyens de contact de l’établissement',
+    settingsPhone: 'Téléphone',
+    settingsWebsite: 'Site web',
+    settingsSchoolYearDescription: 'Période actuelle de l’année scolaire',
+    settingsSave: 'Enregistrer la configuration',
+    settingsLoadError: 'Impossible de charger la configuration.',
+    settingsNameRequired: 'Le nom de l’établissement est obligatoire.',
+    settingsGpsInvalid: 'Les coordonnées GPS doivent être numériques.',
+    settingsSaveError: 'Impossible d’enregistrer la configuration.',
+    settingsSaved: 'Configuration enregistrée avec succès.',
+    settingsImageRequired: 'Veuillez sélectionner une image.',
+    settingsLogoTooLarge: 'Le logo ne doit pas dépasser 5 Mo.',
+    settingsLogoUploadError: 'Impossible d’envoyer le logo :',
+    settingsLogoUrlError: 'Le logo a été envoyé, mais son URL n’a pas pu être enregistrée.',
+    settingsLogoSaved: 'Logo enregistré avec succès.',
+    settingsLogoUnexpectedError: 'Une erreur est survenue lors de l’envoi du logo.',
+    settingsLogoPathError: 'Impossible de déterminer le fichier du logo.',
+    settingsLogoRemoveError: 'Impossible de supprimer le logo :',
+    settingsLogoRemoveUrlError: 'Le fichier a été supprimé, mais la configuration n’a pas pu être mise à jour.',
+    settingsLogoRemoved: 'Logo supprimé avec succès.',
+    settingsLogoRemoveUnexpectedError: 'Une erreur est survenue lors de la suppression du logo.',
+
     appName: 'Gestion de Présence',
     appTagline: 'Système de gestion de présence des élèves',
     signIn: 'Se connecter',
@@ -1025,6 +1126,57 @@ export const translations: Record<Language, TranslationDict> = {
     settings: 'Configuration'
   },
   ar: {
+    settingsTitle: 'إعدادات المؤسسة',
+    settingsDescription: 'اضبط المعلومات العامة لمؤسستك.',
+    settingsIdentity: 'المعلومات العامة',
+    settingsIdentityDescription: 'اسم المؤسسة وهويتها',
+    settingsSchoolName: 'اسم المؤسسة *',
+    settingsSchoolNamePlaceholder: 'مثال: مدرسة الفلاح',
+    settingsSchoolNameAr: 'الاسم بالعربية',
+    settingsSchoolNameEn: 'الاسم بالإنجليزية',
+    settingsDefaultLanguage: 'اللغة الافتراضية',
+    settingsLogoTitle: 'شعار المؤسسة',
+    settingsLogoDescription: 'سيُستخدم الشعار في التطبيق والتقارير المستقبلية.',
+    settingsNoLogo: 'لا يوجد شعار',
+    settingsChooseLogo: 'اختيار شعار',
+    settingsChangeLogo: 'تغيير الشعار',
+    settingsProcessing: 'جارٍ المعالجة...',
+    settingsLogoFormats: 'الصيغ المقبولة: PNG وJPG وWEBP وSVG.',
+    settingsLogoMaxSize: 'الحجم الأقصى: 5 ميغابايت.',
+    settingsAddressTitle: 'العنوان والموقع',
+    settingsAddressDescription: 'معلومات تحديد موقع المؤسسة',
+    settingsAddress: 'العنوان',
+    settingsAddressPlaceholder: 'مثال: 12 شارع المدارس',
+    settingsCity: 'المدينة',
+    settingsWilaya: 'الولاية',
+    settingsCountry: 'البلد',
+    settingsCityPlaceholder: 'مثال: الجزائر',
+    settingsMapsLink: 'رابط خرائط Google',
+    settingsLatitude: 'خط العرض',
+    settingsLongitude: 'خط الطول',
+    settingsContactTitle: 'معلومات الاتصال',
+    settingsContactDescription: 'وسائل التواصل مع المؤسسة',
+    settingsPhone: 'الهاتف',
+    settingsWebsite: 'الموقع الإلكتروني',
+    settingsSchoolYearDescription: 'فترة السنة الدراسية الحالية',
+    settingsSave: 'حفظ الإعدادات',
+    settingsLoadError: 'تعذّر تحميل الإعدادات.',
+    settingsNameRequired: 'اسم المؤسسة مطلوب.',
+    settingsGpsInvalid: 'يجب أن تكون إحداثيات GPS أرقامًا.',
+    settingsSaveError: 'تعذّر حفظ الإعدادات.',
+    settingsSaved: 'تم حفظ الإعدادات بنجاح.',
+    settingsImageRequired: 'يرجى اختيار صورة.',
+    settingsLogoTooLarge: 'يجب ألا يتجاوز حجم الشعار 5 ميغابايت.',
+    settingsLogoUploadError: 'تعذّر رفع الشعار:',
+    settingsLogoUrlError: 'تم رفع الشعار لكن تعذّر حفظ رابطه.',
+    settingsLogoSaved: 'تم حفظ الشعار بنجاح.',
+    settingsLogoUnexpectedError: 'حدث خطأ أثناء رفع الشعار.',
+    settingsLogoPathError: 'تعذّر تحديد ملف الشعار.',
+    settingsLogoRemoveError: 'تعذّر حذف الشعار:',
+    settingsLogoRemoveUrlError: 'تم حذف الملف لكن تعذّر تحديث الإعدادات.',
+    settingsLogoRemoved: 'تم حذف الشعار بنجاح.',
+    settingsLogoRemoveUnexpectedError: 'حدث خطأ أثناء حذف الشعار.',
+
     appName: 'إدارة الحضور',
     appTagline: 'نظام إدارة حضور التلاميذ',
     signIn: 'تسجيل الدخول',
@@ -1529,6 +1681,57 @@ export const translations: Record<Language, TranslationDict> = {
     createAdministrator: 'إنشاء حساب المدير',
   },
   en: {
+    settingsTitle: 'School settings',
+    settingsDescription: 'Configure your school information.',
+    settingsIdentity: 'General information',
+    settingsIdentityDescription: 'School name and identity',
+    settingsSchoolName: 'School name *',
+    settingsSchoolNamePlaceholder: 'e.g. El Falah School',
+    settingsSchoolNameAr: 'Name in Arabic',
+    settingsSchoolNameEn: 'Name in English',
+    settingsDefaultLanguage: 'Default language',
+    settingsLogoTitle: 'School logo',
+    settingsLogoDescription: 'The logo will be used in the app and future reports.',
+    settingsNoLogo: 'No logo',
+    settingsChooseLogo: 'Choose a logo',
+    settingsChangeLogo: 'Change logo',
+    settingsProcessing: 'Processing...',
+    settingsLogoFormats: 'Accepted formats: PNG, JPG, WEBP or SVG.',
+    settingsLogoMaxSize: 'Maximum size: 5 MB.',
+    settingsAddressTitle: 'Address and location',
+    settingsAddressDescription: 'Information to locate the school',
+    settingsAddress: 'Address',
+    settingsAddressPlaceholder: 'e.g. 12 School Street',
+    settingsCity: 'City',
+    settingsWilaya: 'Province (Wilaya)',
+    settingsCountry: 'Country',
+    settingsCityPlaceholder: 'e.g. Algiers',
+    settingsMapsLink: 'Google Maps link',
+    settingsLatitude: 'Latitude',
+    settingsLongitude: 'Longitude',
+    settingsContactTitle: 'Contact details',
+    settingsContactDescription: 'Ways to contact the school',
+    settingsPhone: 'Phone',
+    settingsWebsite: 'Website',
+    settingsSchoolYearDescription: 'Current school year period',
+    settingsSave: 'Save settings',
+    settingsLoadError: 'Unable to load settings.',
+    settingsNameRequired: 'School name is required.',
+    settingsGpsInvalid: 'GPS coordinates must be numeric.',
+    settingsSaveError: 'Unable to save settings.',
+    settingsSaved: 'Settings saved successfully.',
+    settingsImageRequired: 'Please select an image.',
+    settingsLogoTooLarge: 'Logo must not exceed 5 MB.',
+    settingsLogoUploadError: 'Unable to upload logo:',
+    settingsLogoUrlError: 'Logo uploaded, but its URL could not be saved.',
+    settingsLogoSaved: 'Logo saved successfully.',
+    settingsLogoUnexpectedError: 'An error occurred while uploading the logo.',
+    settingsLogoPathError: 'Unable to identify the logo file.',
+    settingsLogoRemoveError: 'Unable to delete logo:',
+    settingsLogoRemoveUrlError: 'File deleted, but settings could not be updated.',
+    settingsLogoRemoved: 'Logo deleted successfully.',
+    settingsLogoRemoveUnexpectedError: 'An error occurred while deleting the logo.',
+
     appName: 'Attendance Manager',
     appTagline: 'School student attendance management system',
     signIn: 'Sign In',

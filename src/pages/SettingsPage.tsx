@@ -190,7 +190,7 @@ export function SettingsPage() {
     if (error) {
       console.error('Erreur chargement configuration:', error);
       showToast(
-        'Impossible de charger la configuration.',
+        t('settingsLoadError'),
         'error'
       );
       setLoading(false);
@@ -360,7 +360,7 @@ export function SettingsPage() {
 
     if (!form.school_name.trim()) {
       showToast(
-        'Le nom de l’établissement est obligatoire.',
+        t('settingsNameRequired'),
         'error'
       );
       return;
@@ -383,7 +383,7 @@ export function SettingsPage() {
       (longitude !== null && Number.isNaN(longitude))
     ) {
       showToast(
-        'Les coordonnées GPS doivent être numériques.',
+        t('settingsGpsInvalid'),
         'error'
       );
       setSaving(false);
@@ -421,7 +421,7 @@ export function SettingsPage() {
       );
 
       showToast(
-        'Impossible d’enregistrer la configuration.',
+        t('settingsSaveError'),
         'error'
       );
 
@@ -430,7 +430,7 @@ export function SettingsPage() {
     }
 
     showToast(
-      'Configuration enregistrée avec succès.',
+      t('settingsSaved'),
       'success'
     );
 
@@ -453,7 +453,7 @@ export function SettingsPage() {
     // Vérification du type
     if (!file.type.startsWith('image/')) {
       showToast(
-        'Veuillez sélectionner une image.',
+        t('settingsImageRequired'),
         'error'
       );
 
@@ -466,7 +466,7 @@ export function SettingsPage() {
 
     if (file.size > maxSize) {
       showToast(
-        'Le logo ne doit pas dépasser 5 Mo.',
+        t('settingsLogoTooLarge'),
         'error'
       );
 
@@ -505,7 +505,7 @@ export function SettingsPage() {
         );
 
         showToast(
-          `Impossible d’envoyer le logo : ${uploadError.message}`,
+          `${t('settingsLogoUploadError')} ${uploadError.message}`,
           'error'
         );
 
@@ -538,7 +538,7 @@ export function SettingsPage() {
         );
 
         showToast(
-          'Le logo a été envoyé, mais son URL n’a pas pu être enregistrée.',
+          t('settingsLogoUrlError'),
           'error'
         );
 
@@ -550,14 +550,14 @@ export function SettingsPage() {
       setLogoUrl(publicUrl);
 
       showToast(
-        'Logo enregistré avec succès.',
+        t('settingsLogoSaved'),
         'success'
       );
     } catch (error) {
       console.error('Erreur logo:', error);
 
       showToast(
-        'Une erreur est survenue lors de l’envoi du logo.',
+        t('settingsLogoUnexpectedError'),
         'error'
       );
     }
@@ -585,7 +585,7 @@ export function SettingsPage() {
 
       if (markerIndex === -1) {
         showToast(
-          'Impossible de déterminer le fichier du logo.',
+          t('settingsLogoPathError'),
           'error'
         );
 
@@ -611,7 +611,7 @@ export function SettingsPage() {
         );
 
         showToast(
-          `Impossible de supprimer le logo : ${removeError.message}`,
+          `${t('settingsLogoRemoveError')} ${removeError.message}`,
           'error'
         );
 
@@ -635,7 +635,7 @@ export function SettingsPage() {
         );
 
         showToast(
-          'Le fichier a été supprimé, mais la configuration n’a pas pu être mise à jour.',
+          t('settingsLogoRemoveUrlError'),
           'error'
         );
 
@@ -646,7 +646,7 @@ export function SettingsPage() {
       setLogoUrl(null);
 
       showToast(
-        'Logo supprimé avec succès.',
+        t('settingsLogoRemoved'),
         'success'
       );
     } catch (error) {
@@ -656,7 +656,7 @@ export function SettingsPage() {
       );
 
       showToast(
-        'Une erreur est survenue lors de la suppression du logo.',
+        t('settingsLogoRemoveUnexpectedError'),
         'error'
       );
     }
@@ -671,7 +671,7 @@ export function SettingsPage() {
           <Loader2 className="w-8 h-8 text-teal-600 animate-spin" />
 
           <p className="text-sm text-slate-500">
-            Chargement de la configuration...
+            {t('loading')}
           </p>
         </div>
       </div>
@@ -683,11 +683,11 @@ export function SettingsPage() {
       {/* En-tête */}
       <div>
         <h1 className="text-2xl font-bold text-slate-800">
-          Configuration de l’établissement
+          {t('settingsTitle')}
         </h1>
 
         <p className="mt-1 text-sm text-slate-500">
-          Configurez les informations générales de votre établissement.
+          {t('settingsDescription')}
         </p>
       </div>
 
@@ -704,11 +704,11 @@ export function SettingsPage() {
 
             <div>
               <h2 className="font-semibold text-slate-800">
-                Informations générales
+                {t('settingsIdentity')}
               </h2>
 
               <p className="text-sm text-slate-500">
-                Nom et identité de l’établissement
+                {t('settingsIdentityDescription')}
               </p>
             </div>
           </div>
@@ -716,7 +716,7 @@ export function SettingsPage() {
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
               <Input
-                label="Nom de l’établissement *"
+                label={t('settingsSchoolName')}
                 value={form.school_name}
                 onChange={(e) =>
                   updateField(
@@ -724,12 +724,12 @@ export function SettingsPage() {
                     e.target.value
                   )
                 }
-                placeholder="Ex. École El Falah"
+                placeholder={t('settingsSchoolNamePlaceholder')}
               />
             </div>
 
             <Input
-              label="Nom en arabe"
+              label={t('settingsSchoolNameAr')}
               value={form.school_name_ar}
               onChange={(e) =>
                 updateField(
@@ -738,11 +738,11 @@ export function SettingsPage() {
                 )
               }
               dir="rtl"
-              placeholder="اسم المؤسسة"
+              placeholder={t('settingsSchoolNameAr')}
             />
 
             <Input
-              label="Nom en anglais"
+              label={t('settingsSchoolNameEn')}
               value={form.school_name_en}
               onChange={(e) =>
                 updateField(
@@ -750,11 +750,11 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="School name"
+              placeholder={t('settingsSchoolNameEn')}
             />
 
             <Select
-              label="Langue par défaut"
+              label={t('settingsDefaultLanguage')}
               value={form.default_language}
               onChange={(e) =>
                 updateField(
@@ -790,11 +790,11 @@ export function SettingsPage() {
 
             <div>
               <h2 className="font-semibold text-slate-800">
-                Logo de l’établissement
+                {t('settingsLogoTitle')}
               </h2>
 
               <p className="text-sm text-slate-500">
-                Le logo sera utilisé dans l’application et les futurs rapports.
+                {t('settingsLogoDescription')}
               </p>
             </div>
           </div>
@@ -806,14 +806,14 @@ export function SettingsPage() {
                 {logoUrl ? (
                   <img
                     src={logoUrl}
-                    alt="Logo de l’établissement"
+                    alt={t('settingsLogoTitle')}
                     className="w-full h-full object-contain p-3"
                   />
                 ) : (
                   <div className="flex flex-col items-center gap-2 text-slate-400">
                     <ImageIcon className="w-10 h-10" />
                     <span className="text-xs">
-                      Aucun logo
+                      {t('settingsNoLogo')}
                     </span>
                   </div>
                 )}
@@ -839,14 +839,14 @@ export function SettingsPage() {
                     {uploadingLogo ? (
                       <>
                         <Loader2 className="w-4 h-4 animate-spin" />
-                        Traitement...
+                        {t('settingsProcessing')}
                       </>
                     ) : (
                       <>
                         <Upload className="w-4 h-4" />
                         {logoUrl
-                          ? 'Changer le logo'
-                          : 'Choisir un logo'}
+                          ? t('settingsChangeLogo')
+                          : t('settingsChooseLogo')}
                       </>
                     )}
                   </Button>
@@ -865,9 +865,9 @@ export function SettingsPage() {
                 </div>
 
                 <p className="text-xs text-slate-400">
-                  Formats acceptés : PNG, JPG, WEBP ou SVG.
+                  {t('settingsLogoFormats')}
                   <br />
-                  Taille maximale : 5 Mo.
+                  {t('settingsLogoMaxSize')}
                 </p>
               </div>
             </div>
@@ -883,11 +883,11 @@ export function SettingsPage() {
 
             <div>
               <h2 className="font-semibold text-slate-800">
-                Adresse et localisation
+                {t('settingsAddressTitle')}
               </h2>
 
               <p className="text-sm text-slate-500">
-                Informations permettant de localiser l’établissement
+                {t('settingsAddressDescription')}
               </p>
             </div>
           </div>
@@ -895,7 +895,7 @@ export function SettingsPage() {
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
             <div className="md:col-span-2">
               <Input
-                label="Adresse"
+                label={t('settingsAddress')}
                 value={form.address}
                 onChange={(e) =>
                   updateField(
@@ -903,21 +903,21 @@ export function SettingsPage() {
                     e.target.value
                   )
                 }
-                placeholder="Ex. 12 rue des Écoles"
+                placeholder={t('settingsAddressPlaceholder')}
               />
             </div>
 
             <Input
-              label="Ville"
+              label={t('settingsCity')}
               value={form.city}
               onChange={(e) =>
                 updateField('city', e.target.value)
               }
-              placeholder="Ex. Alger"
+              placeholder={t('settingsCityPlaceholder')}
             />
 
             <Input
-              label="Wilaya"
+              label={t('settingsWilaya')}
               value={form.wilaya}
               onChange={(e) =>
                 updateField(
@@ -925,11 +925,11 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="Ex. Alger"
+              placeholder={t('settingsCityPlaceholder')}
             />
 
             <Input
-              label="Pays"
+              label={t('settingsCountry')}
               value={form.country}
               onChange={(e) =>
                 updateField(
@@ -937,11 +937,11 @@ export function SettingsPage() {
                   e.target.value
                 )
               }
-              placeholder="Algérie"
+              placeholder={form.country || t('settingsCountry')}
             />
 
             <Input
-              label="Lien Google Maps"
+              label={t('settingsMapsLink')}
               value={form.maps_url}
               onChange={(e) =>
                 updateField(
@@ -953,7 +953,7 @@ export function SettingsPage() {
             />
 
             <Input
-              label="Latitude"
+              label={t('settingsLatitude')}
               type="number"
               step="any"
               value={form.latitude}
@@ -967,7 +967,7 @@ export function SettingsPage() {
             />
 
             <Input
-              label="Longitude"
+              label={t('settingsLongitude')}
               type="number"
               step="any"
               value={form.longitude}
@@ -991,18 +991,18 @@ export function SettingsPage() {
 
             <div>
               <h2 className="font-semibold text-slate-800">
-                Coordonnées
+                {t('settingsContactTitle')}
               </h2>
 
               <p className="text-sm text-slate-500">
-                Moyens de contact de l’établissement
+                {t('settingsContactDescription')}
               </p>
             </div>
           </div>
 
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-5">
             <Input
-              label="Téléphone"
+              label={t('settingsPhone')}
               type="tel"
               value={form.phone}
               onChange={(e) =>
@@ -1015,7 +1015,7 @@ export function SettingsPage() {
             />
 
             <Input
-              label="Email"
+              label={t('email')}
               type="email"
               value={form.email}
               onChange={(e) =>
@@ -1029,7 +1029,7 @@ export function SettingsPage() {
 
             <div className="md:col-span-2">
               <Input
-                label="Site web"
+                label={t('settingsWebsite')}
                 type="url"
                 value={form.website}
                 onChange={(e) =>
@@ -1053,18 +1053,18 @@ export function SettingsPage() {
 
             <div>
               <h2 className="font-semibold text-slate-800">
-                Année scolaire
+                {t('schoolYear')}
               </h2>
 
               <p className="text-sm text-slate-500">
-                Période actuelle de l’année scolaire
+                {t('settingsSchoolYearDescription')}
               </p>
             </div>
           </div>
 
           <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-5">
             <Input
-              label="Année scolaire"
+              label={t('schoolYear')}
               value={form.school_year}
               onChange={(e) =>
                 updateField(
@@ -1076,7 +1076,7 @@ export function SettingsPage() {
             />
 
             <Input
-              label="Date de début"
+              label={t('startDate')}
               type="date"
               value={form.start_date}
               onChange={(e) =>
@@ -1088,7 +1088,7 @@ export function SettingsPage() {
             />
 
             <Input
-              label="Date de fin"
+              label={t('endDate')}
               type="date"
               value={form.end_date}
               onChange={(e) =>
@@ -1185,7 +1185,7 @@ export function SettingsPage() {
                       onChange={(e) =>
                         updateHoliday(index, 'name_en', e.target.value)
                       }
-                      placeholder="Winter break"
+                      placeholder={t('winterBreak')}
                     />
 
                     <Input
@@ -1244,12 +1244,12 @@ export function SettingsPage() {
             {saving ? (
               <>
                 <Loader2 className="w-5 h-5 animate-spin" />
-                Enregistrement...
+                {t('saving')}
               </>
             ) : (
               <>
                 <Save className="w-5 h-5" />
-                Enregistrer la configuration
+                {t('settingsSave')}
               </>
             )}
           </Button>
